@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36603.0 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0BE52CA2-4EB4-4819-86EB-303FE0276579}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{C02E59CD-536D-486C-A4C8-CABE89A03401}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelecomPM.Domain", "TelecomPM.Domain\TelecomPM.Domain.csproj", "{4FC91273-2409-4A31-9808-72A017A1264C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4FC91273-2409-4A31-9808-72A017A1264C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FC91273-2409-4A31-9808-72A017A1264C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FC91273-2409-4A31-9808-72A017A1264C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FC91273-2409-4A31-9808-72A017A1264C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4FC91273-2409-4A31-9808-72A017A1264C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E0F2198C-72E2-4A1E-92EC-AB84DE3DCC65}
+	EndGlobalSection
+EndGlobal
