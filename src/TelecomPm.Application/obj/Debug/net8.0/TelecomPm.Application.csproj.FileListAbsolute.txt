@@ -1,0 +1,16 @@
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\bin\Debug\net8.0\TelecomPm.Application.deps.json
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\bin\Debug\net8.0\TelecomPm.Application.dll
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\bin\Debug\net8.0\TelecomPm.Application.pdb
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\bin\Debug\net8.0\TelecomPM.Domain.dll
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\bin\Debug\net8.0\TelecomPM.Domain.pdb
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.csproj.AssemblyReference.cache
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.AssemblyInfoInputs.cache
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.AssemblyInfo.cs
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.csproj.CoreCompileInputs.cache
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.sourcelink.json
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomP.2F090F55.Up2Date
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.dll
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\refint\TelecomPm.Application.dll
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\TelecomPm.Application.pdb
+C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Application\obj\Debug\net8.0\ref\TelecomPm.Application.dll

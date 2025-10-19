@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TelecomPM.Domain.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fde8921af3e9d3589b6bd15d6c4b36488e859ef5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9838de8b166ae0032194d31c8c02449d3f0f5c03")]
 [assembly: System.Reflection.AssemblyProductAttribute("TelecomPM.Domain.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TelecomPM.Domain.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
