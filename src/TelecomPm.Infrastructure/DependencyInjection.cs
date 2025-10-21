@@ -34,6 +34,10 @@ public static class DependencyInjection
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        // Email Service
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<EmailService>(); 
+
         // Repositories
         services.AddScoped<IVisitRepository, VisitRepository>();
         services.AddScoped<ISiteRepository, SiteRepository>();

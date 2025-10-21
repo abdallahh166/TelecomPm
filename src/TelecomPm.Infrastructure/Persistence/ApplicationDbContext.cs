@@ -92,7 +92,7 @@ public class ApplicationDbContext : DbContext
 
         foreach (var domainEvent in domainEvents)
         {
-            // ✅ Wrap domain events in DomainEventNotification<T> for MediatR
+            // ✅ Create wrapper notification
             var notificationType = typeof(DomainEventNotification<>)
                 .MakeGenericType(domainEvent.GetType());
 

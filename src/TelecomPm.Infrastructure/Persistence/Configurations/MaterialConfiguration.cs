@@ -159,5 +159,37 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
 
         builder.HasIndex(m => m.OfficeId);
         builder.HasIndex(m => m.IsActive);
+
+        //gsj
+        builder.OwnsMany(m => m.Reservations, reservation =>
+        {
+            reservation.ToTable("MaterialReservations");
+            reservation.WithOwner().HasForeignKey(r => r.MaterialId);
+
+            reservation.Property(r => r.Id);
+            reservation.Property(r => r.VisitId).IsRequired();
+            reservation.Property(r => r.ReservedAt).IsRequired();
+            reservation.Property(r => r.IsConsumed).IsRequired();
+
+            reservation.OwnsOne(r => r.Quantity, qty =>
+            {
+                qty.Property(q => q.Value)
+                    .HasColumnName("Quantity")
+                    .HasPrecision(18, 4)
+                    .IsRequired();
+
+                qty.Property(q => q.Unit)
+                    .HasColumnName("Unit")
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .IsRequired();
+            });
+
+            reservation.HasIndex(r => r.VisitId);
+            reservation.HasIndex(r => r.IsConsumed);
+        });
+
+        // Ignore domain events
+        builder.Ignore(m => m.DomainEvents);
     }
 }
