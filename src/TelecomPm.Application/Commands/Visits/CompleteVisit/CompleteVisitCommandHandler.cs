@@ -35,7 +35,7 @@ public class CompleteVisitCommandHandler : IRequestHandler<CompleteVisitCommand,
 
             visit.CompleteVisit();
 
-            _visitRepository.Update(visit);
+            await _visitRepository.UpdateAsync(visit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

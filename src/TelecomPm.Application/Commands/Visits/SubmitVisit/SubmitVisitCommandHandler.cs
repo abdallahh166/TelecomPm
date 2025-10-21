@@ -51,7 +51,7 @@ public class SubmitVisitCommandHandler : IRequestHandler<SubmitVisitCommand, Res
         {
             visit.Submit();
 
-            _visitRepository.Update(visit);
+            await _visitRepository.UpdateAsync(visit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

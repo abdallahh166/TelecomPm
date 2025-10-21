@@ -1,9 +1,10 @@
 ﻿namespace TelecomPM.Infrastructure.Persistence;
 
 using MediatR;
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Reflection;
+using TelecomPM.Application.Common.Events;
 using TelecomPM.Domain.Common;
 using TelecomPM.Domain.Entities.Materials;
 using TelecomPM.Domain.Entities.Offices;
@@ -91,7 +92,16 @@ public class ApplicationDbContext : DbContext
 
         foreach (var domainEvent in domainEvents)
         {
-            await Publisher.Publish(domainEvent, cancellationToken);
+            // ✅ Wrap domain events in DomainEventNotification<T> for MediatR
+            var notificationType = typeof(DomainEventNotification<>)
+                .MakeGenericType(domainEvent.GetType());
+
+            var notification = Activator.CreateInstance(notificationType, domainEvent);
+
+            if (notification != null)
+            {
+                await Publisher.Publish(notification, cancellationToken);
+            }
         }
     }
 

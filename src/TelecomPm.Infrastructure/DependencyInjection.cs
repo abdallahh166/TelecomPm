@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TelecomPM.Application.Common.Interfaces;
 using TelecomPM.Domain.Interfaces.Repositories;
-using TelecomPM.Domain.Services;
 using TelecomPM.Infrastructure.Persistence;
 using TelecomPM.Infrastructure.Persistence.Repositories;
 using TelecomPM.Infrastructure.Services;
@@ -17,18 +16,14 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Database
+        // Database - Register without custom factory first
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-        // Inject IPublisher for domain events
-        services.AddScoped<IPublisher>(provider =>
-            provider.GetRequiredService<IMediator>());
-
-        // Configure ApplicationDbContext to use IPublisher
-        services.AddScoped<ApplicationDbContext>(provider =>
+        // ✅ Fix: Inject IPublisher into DbContext via property injection
+        services.AddScoped(provider =>
         {
             var context = provider.GetRequiredService<ApplicationDbContext>();
             context.Publisher = provider.GetRequiredService<IPublisher>();
@@ -49,8 +44,11 @@ public static class DependencyInjection
         services.AddScoped<IDateTimeService, DateTimeService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IFileStorageService, BlobStorageService>();
+
+        // ✅ Fix: Register EmailService as IEmailService
+        services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<EmailService>();
+
         services.AddScoped<IExcelExportService, ExcelExportService>();
         services.AddScoped<IReportGenerationService, ReportGenerationService>();
 

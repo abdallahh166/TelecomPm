@@ -50,10 +50,10 @@ public class ApproveVisitCommandHandler : IRequestHandler<ApproveVisitCommand, R
             if (site != null)
             {
                 site.RecordVisit(visit.ActualStartTime ?? DateTime.UtcNow);
-                _siteRepository.Update(site);
+                await _siteRepository.UpdateAsync(site, cancellationToken);
             }
 
-            _visitRepository.Update(visit);
+            await _visitRepository.UpdateAsync(visit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

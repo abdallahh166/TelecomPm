@@ -41,7 +41,7 @@ public class RequestCorrectionCommandHandler : IRequestHandler<RequestCorrection
         {
             visit.RequestCorrection(reviewer.Id, reviewer.Name, request.CorrectionNotes);
 
-            _visitRepository.Update(visit);
+            await _visitRepository.UpdateAsync(visit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

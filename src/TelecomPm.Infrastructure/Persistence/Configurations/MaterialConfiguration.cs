@@ -28,69 +28,136 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
 
         builder.Property(m => m.Category)
             .IsRequired()
-            .HasConversion<string>()
-            .HasMaxLength(50);
+            .HasConversion<string>();
+
+        builder.Property(m => m.OfficeId)
+            .IsRequired();
+
+        // ✅ CurrentStock Value Object
+        builder.OwnsOne(m => m.CurrentStock, stock =>
+        {
+            stock.Property(s => s.Value)
+                .HasColumnName("CurrentStockValue")
+                .IsRequired();
+
+            stock.Property(s => s.Unit)
+                .HasColumnName("CurrentStockUnit")
+                .HasMaxLength(20)
+                .HasConversion<string>()
+                .IsRequired();
+        });
+
+        // ✅ MinimumStock Value Object
+        builder.OwnsOne(m => m.MinimumStock, stock =>
+        {
+            stock.Property(s => s.Value)
+                .HasColumnName("MinimumStockValue")
+                .IsRequired();
+
+            stock.Property(s => s.Unit)
+                .HasColumnName("MinimumStockUnit")
+                .HasMaxLength(20)
+                .HasConversion<string>()
+                .IsRequired();
+        });
+
+        // ✅ ReorderQuantity Value Object (nullable)
+        builder.OwnsOne(m => m.ReorderQuantity, stock =>
+        {
+            stock.Property(s => s.Value)
+                .HasColumnName("ReorderQuantityValue");
+
+            stock.Property(s => s.Unit)
+                .HasColumnName("ReorderQuantityUnit")
+                .HasMaxLength(20)
+                .HasConversion<string>();
+        });
+
+        // ✅ UnitCost Value Object
+        builder.OwnsOne(m => m.UnitCost, money =>
+        {
+            money.Property(mc => mc.Amount)
+                .HasColumnName("UnitCostAmount")
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            money.Property(mc => mc.Currency)
+                .HasColumnName("UnitCostCurrency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
 
         builder.Property(m => m.Supplier)
             .HasMaxLength(200);
 
-        // Owned Type: CurrentStock
-        builder.OwnsOne(m => m.CurrentStock, stock =>
-        {
-            stock.Property(s => s.Value)
-                .HasColumnName("CurrentStock")
-                .HasPrecision(18, 4);
+        builder.Property(m => m.LastRestockDate);
 
-            stock.Property(s => s.Unit)
-                .HasColumnName("Unit")
-                .HasConversion<string>()
-                .HasMaxLength(20);
+        builder.Property(m => m.IsActive)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        // ✅ MaterialReservations - Owned Entity Collection
+        builder.OwnsMany(m => m.Reservations, reservation =>
+        {
+            reservation.ToTable("MaterialReservations");
+
+            reservation.WithOwner()
+                .HasForeignKey(r => r.MaterialId);
+
+            reservation.HasKey(r => r.Id);
+
+            reservation.Property(r => r.Id)
+                .ValueGeneratedNever(); // Guid is set in constructor
+
+            reservation.Property(r => r.MaterialId)
+                .IsRequired();
+
+            reservation.Property(r => r.VisitId)
+                .IsRequired();
+
+            reservation.Property(r => r.ReservedAt)
+                .IsRequired();
+
+            reservation.Property(r => r.IsConsumed)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            // Quantity Value Object in Reservation
+            reservation.OwnsOne(r => r.Quantity, qty =>
+            {
+                qty.Property(q => q.Value)
+                    .HasColumnName("QuantityValue")
+                    .IsRequired();
+
+                qty.Property(q => q.Unit)
+                    .HasColumnName("QuantityUnit")
+                    .HasMaxLength(20)
+                    .HasConversion<string>()
+                    .IsRequired();
+            });
+
+            reservation.HasIndex(r => r.VisitId);
+            reservation.HasIndex(r => new { r.MaterialId, r.IsConsumed });
         });
 
-        // Owned Type: MinimumStock
-        builder.OwnsOne(m => m.MinimumStock, stock =>
-        {
-            stock.Property(s => s.Value)
-                .HasColumnName("MinimumStock")
-                .HasPrecision(18, 4);
+        // ✅ MaterialTransactions - Navigation (separate entity, not owned)
+        builder.HasMany(m => m.Transactions)
+            .WithOne()
+            .HasForeignKey(t => t.MaterialId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            stock.Property(s => s.Unit)
-                .HasColumnName("MinimumStockUnit")
-                .HasConversion<string>()
-                .HasMaxLength(20);
-        });
+        // Audit fields
+        builder.Property(m => m.CreatedAt)
+            .IsRequired();
 
-        // Owned Type: ReorderQuantity
-        builder.OwnsOne(m => m.ReorderQuantity, stock =>
-        {
-            stock.Property(s => s.Value)
-                .HasColumnName("ReorderQuantity")
-                .HasPrecision(18, 4);
+        builder.Property(m => m.CreatedBy)
+            .HasMaxLength(256);
 
-            stock.Property(s => s.Unit)
-                .HasColumnName("ReorderQuantityUnit")
-                .HasConversion<string>()
-                .HasMaxLength(20);
-        });
+        builder.Property(m => m.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
 
-        // Owned Type: UnitCost
-        builder.OwnsOne(m => m.UnitCost, money =>
-        {
-            money.Property(m => m.Amount)
-                .HasColumnName("UnitCost")
-                .HasPrecision(18, 2);
-
-            money.Property(m => m.Currency)
-                .HasColumnName("Currency")
-                .HasMaxLength(10);
-        });
-
-        // Indexes
         builder.HasIndex(m => m.OfficeId);
-        builder.HasIndex(m => m.Category);
         builder.HasIndex(m => m.IsActive);
-
-        // Ignore domain events
-        builder.Ignore(m => m.DomainEvents);
     }
 }

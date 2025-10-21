@@ -1,4 +1,12 @@
+using TelecomPM.Domain.ValueObjects;
+
 namespace TelecomPM.Domain.Events.MaterialEvents
 {
-    // Empty file - add MaterialAssignedEvent here
+    public sealed record MaterialAssignedEvent(
+        Guid MaterialId,
+        Guid VisitId,
+        Guid EngineerId,
+        MaterialQuantity Quantity,
+        DateTime AssignedAt
+    ) : DomainEvent;
 }

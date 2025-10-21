@@ -63,7 +63,7 @@ public class AddReadingCommandHandler : IRequestHandler<AddReadingCommand, Resul
 
         visit.AddReading(reading);
 
-        _visitRepository.Update(visit);
+        await _visitRepository.UpdateAsync(visit, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var dto = _mapper.Map<VisitReadingDto>(reading);

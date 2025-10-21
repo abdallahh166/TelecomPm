@@ -11,6 +11,7 @@ public class UserRepository : Repository<User, Guid>, IUserRepository
     {
     }
 
+    // ✅ WITH TRACKING - For updates
     public async Task<User?> GetByEmailAsync(
         string email,
         CancellationToken cancellationToken = default)
@@ -39,12 +40,45 @@ public class UserRepository : Repository<User, Guid>, IUserRepository
             .ToListAsync(cancellationToken);
     }
 
+    // ✅ WITHOUT TRACKING - For display/reports
+    public async Task<User?> GetByEmailAsNoTrackingAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<User>> GetByRoleAsNoTrackingAsync(
+        UserRole role,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(u => u.Role == role && u.IsActive)
+            .OrderBy(u => u.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<User>> GetByOfficeIdAsNoTrackingAsync(
+        Guid officeId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(u => u.OfficeId == officeId && u.IsActive)
+            .OrderBy(u => u.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    // ✅ QUERY METHODS - Always AsNoTracking
     public async Task<bool> IsEmailUniqueAsync(
         string email,
         Guid? excludeUserId = null,
         CancellationToken cancellationToken = default)
     {
-        var query = _dbSet.Where(u => u.Email == email);
+        var query = _dbSet.AsNoTracking().Where(u => u.Email == email);
 
         if (excludeUserId.HasValue)
         {
@@ -52,5 +86,32 @@ public class UserRepository : Repository<User, Guid>, IUserRepository
         }
 
         return !await query.AnyAsync(cancellationToken);
+    }
+
+    public async Task<bool> EmailExistsAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(u => u.Email == email, cancellationToken);
+    }
+
+    public async Task<int> GetUserCountByRoleAsync(
+        UserRole role,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .CountAsync(u => u.Role == role && u.IsActive, cancellationToken);
+    }
+
+    public async Task<int> GetActiveUserCountByOfficeAsync(
+        Guid officeId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .CountAsync(u => u.OfficeId == officeId && u.IsActive, cancellationToken);
     }
 }

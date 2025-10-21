@@ -1,5 +1,4 @@
-﻿
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore.Storage;
 using TelecomPM.Domain.Interfaces.Repositories;
 
 namespace TelecomPM.Infrastructure.Persistence;
@@ -14,6 +13,8 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
     }
 
+    public bool HasActiveTransaction => _transaction != null;
+
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
@@ -21,15 +22,25 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
+        if (_transaction != null)
+        {
+            throw new InvalidOperationException("A transaction is already in progress.");
+        }
+
         _transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
     }
 
     public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
+        if (_transaction == null)
+        {
+            throw new InvalidOperationException("No active transaction to commit.");
+        }
+
         try
         {
             await _context.SaveChangesAsync(cancellationToken);
-            await (_transaction?.CommitAsync(cancellationToken) ?? Task.CompletedTask);
+            await _transaction.CommitAsync(cancellationToken);
         }
         catch
         {
@@ -38,21 +49,88 @@ public class UnitOfWork : IUnitOfWork
         }
         finally
         {
-            _transaction?.Dispose();
+            _transaction.Dispose();
             _transaction = null;
         }
     }
 
     public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
+        if (_transaction == null)
+        {
+            return; // Nothing to rollback
+        }
+
         try
         {
-            await (_transaction?.RollbackAsync(cancellationToken) ?? Task.CompletedTask);
+            await _transaction.RollbackAsync(cancellationToken);
         }
         finally
         {
-            _transaction?.Dispose();
+            _transaction.Dispose();
             _transaction = null;
+        }
+    }
+
+    public async Task<TResult> ExecuteInTransactionAsync<TResult>(
+        Func<Task<TResult>> operation,
+        CancellationToken cancellationToken = default)
+    {
+        if (operation == null)
+        {
+            throw new ArgumentNullException(nameof(operation));
+        }
+
+        // If there's already an active transaction, just execute the operation
+        if (HasActiveTransaction)
+        {
+            return await operation();
+        }
+
+        // Otherwise, create a new transaction
+        await BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            var result = await operation();
+            await CommitTransactionAsync(cancellationToken);
+            return result;
+        }
+        catch
+        {
+            await RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public async Task ExecuteInTransactionAsync(
+        Func<Task> operation,
+        CancellationToken cancellationToken = default)
+    {
+        if (operation == null)
+        {
+            throw new ArgumentNullException(nameof(operation));
+        }
+
+        // If there's already an active transaction, just execute the operation
+        if (HasActiveTransaction)
+        {
+            await operation();
+            return;
+        }
+
+        // Otherwise, create a new transaction
+        await BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            await operation();
+            await CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            await RollbackTransactionAsync(cancellationToken);
+            throw;
         }
     }
 

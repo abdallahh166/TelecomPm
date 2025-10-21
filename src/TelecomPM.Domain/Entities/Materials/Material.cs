@@ -1,4 +1,3 @@
-using System.Transactions;
 using TelecomPM.Domain.Common;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Events.MaterialEvents;

@@ -14,10 +14,11 @@ public class Repository<TEntity, TId> : IRepository<TEntity, TId>
 
     public Repository(ApplicationDbContext context)
     {
-        _context = context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _dbSet = context.Set<TEntity>();
     }
 
+    // ✅ WITH TRACKING - For entities that will be modified
     public virtual async Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FindAsync(new object[] { id }, cancellationToken);
@@ -42,20 +43,65 @@ public class Repository<TEntity, TId> : IRepository<TEntity, TId>
         return await ApplySpecification(specification).FirstOrDefaultAsync(cancellationToken);
     }
 
+    // ✅ WITHOUT TRACKING - For display/reporting
+    public virtual async Task<TEntity?> GetByIdAsNoTrackingAsync(TId id, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
+    }
+
+    public virtual async Task<IReadOnlyList<TEntity>> GetAllAsNoTrackingAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.AsNoTracking().ToListAsync(cancellationToken);
+    }
+
+    public virtual async Task<IReadOnlyList<TEntity>> FindAsNoTrackingAsync(
+        ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification, asNoTracking: true).ToListAsync(cancellationToken);
+    }
+
+    public virtual async Task<TEntity?> FindOneAsNoTrackingAsync(
+        ISpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification, asNoTracking: true).FirstOrDefaultAsync(cancellationToken);
+    }
+
+    // ✅ QUERY OPERATIONS - Always AsNoTracking
     public virtual async Task<int> CountAsync(
         ISpecification<TEntity> specification,
         CancellationToken cancellationToken = default)
     {
-        return await ApplySpecification(specification).CountAsync(cancellationToken);
+        // Use optimized count query without includes
+        var query = _dbSet.AsNoTracking();
+
+        if (specification.Criteria != null)
+        {
+            query = query.Where(specification.Criteria);
+        }
+
+        return await query.CountAsync(cancellationToken);
     }
 
     public virtual async Task<bool> ExistsAsync(
         ISpecification<TEntity> specification,
         CancellationToken cancellationToken = default)
     {
-        return await ApplySpecification(specification).AnyAsync(cancellationToken);
+        // Use optimized exists query without includes
+        var query = _dbSet.AsNoTracking();
+
+        if (specification.Criteria != null)
+        {
+            query = query.Where(specification.Criteria);
+        }
+
+        return await query.AnyAsync(cancellationToken);
     }
 
+    // ✅ WRITE OPERATIONS
     public virtual async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         await _dbSet.AddAsync(entity, cancellationToken);
@@ -68,72 +114,50 @@ public class Repository<TEntity, TId> : IRepository<TEntity, TId>
         await _dbSet.AddRangeAsync(entities, cancellationToken);
     }
 
-    public virtual void Update(TEntity entity)
+    public virtual Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         _dbSet.Update(entity);
+        return Task.CompletedTask;
     }
 
-    public virtual void Remove(TEntity entity)
+    public virtual Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         // Soft delete
         entity.MarkAsDeleted("System");
         _dbSet.Update(entity);
+        return Task.CompletedTask;
     }
 
-    public virtual void RemoveRange(IEnumerable<TEntity> entities)
+    public virtual Task DeleteRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
         foreach (var entity in entities)
         {
             entity.MarkAsDeleted("System");
         }
         _dbSet.UpdateRange(entities);
+        return Task.CompletedTask;
     }
 
-    private IQueryable<TEntity> ApplySpecification(ISpecification<TEntity> specification)
+    // ✅ HELPER METHODS
+    protected IQueryable<TEntity> Query()
     {
-        return SpecificationEvaluator.GetQuery(_dbSet.AsQueryable(), specification);
+        return _dbSet.AsQueryable();
     }
-}
 
-// Specification Evaluator
-internal static class SpecificationEvaluator
-{
-    public static IQueryable<T> GetQuery<T>(
-        IQueryable<T> inputQuery,
-        ISpecification<T> specification) where T : class
+    protected IQueryable<TEntity> QueryAsNoTracking()
     {
-        var query = inputQuery;
+        return _dbSet.AsNoTracking();
+    }
 
-        // Apply criteria
-        if (specification.Criteria != null)
-        {
-            query = query.Where(specification.Criteria);
-        }
+    // ✅ Enhanced with tracking control
+    private IQueryable<TEntity> ApplySpecification(
+        ISpecification<TEntity> specification,
+        bool asNoTracking = false)
+    {
+        var query = asNoTracking
+            ? _dbSet.AsNoTracking()
+            : _dbSet.AsQueryable();
 
-        // Apply includes
-        query = specification.Includes
-            .Aggregate(query, (current, include) => current.Include(include));
-
-        // Apply include strings
-        query = specification.IncludeStrings
-            .Aggregate(query, (current, include) => current.Include(include));
-
-        // Apply ordering
-        if (specification.OrderBy != null)
-        {
-            query = query.OrderBy(specification.OrderBy);
-        }
-        else if (specification.OrderByDescending != null)
-        {
-            query = query.OrderByDescending(specification.OrderByDescending);
-        }
-
-        // Apply paging
-        if (specification.IsPagingEnabled)
-        {
-            query = query.Skip(specification.Skip).Take(specification.Take);
-        }
-
-        return query;
+        return SpecificationEvaluator<TEntity, TId>.GetQuery(query, specification, asNoTracking);
     }
 }

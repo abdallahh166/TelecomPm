@@ -10,4 +10,12 @@ public interface IEmailService
         string subject,
         string body,
         CancellationToken cancellationToken = default);
+
+    Task SendEmailWithAttachmentAsync(
+        string to,
+        string subject,
+        string body,
+        byte[] attachment,
+        string attachmentName,
+        CancellationToken cancellationToken = default);
 }

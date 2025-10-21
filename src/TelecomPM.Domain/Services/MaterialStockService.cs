@@ -8,11 +8,11 @@ namespace TelecomPM.Domain.Services;
 public sealed class MaterialStockService : IMaterialStockService
 {
     private readonly IMaterialRepository _materialRepository;
-    private readonly IUnitOfWork _unitOfWork; //Add IUnitOfWork
+    private readonly IUnitOfWork _unitOfWork;
 
     public MaterialStockService(
         IMaterialRepository materialRepository,
-        IUnitOfWork unitOfWork) // recive IUnitOfWork in constructor
+        IUnitOfWork unitOfWork)
     {
         _materialRepository = materialRepository;
         _unitOfWork = unitOfWork;
@@ -23,7 +23,9 @@ public sealed class MaterialStockService : IMaterialStockService
         MaterialQuantity requestedQuantity,
         CancellationToken cancellationToken = default)
     {
-        var material = await _materialRepository.GetByIdAsync(materialId, cancellationToken);
+        // Use AsNoTracking since we're only checking availability
+        var material = await _materialRepository.GetByIdAsNoTrackingAsync(materialId, cancellationToken);
+
         if (material == null)
             return false;
 
@@ -36,10 +38,11 @@ public sealed class MaterialStockService : IMaterialStockService
         Guid visitId,
         CancellationToken cancellationToken = default)
     {
+        // Reserve stock in domain
         material.ReserveStock(quantity, visitId);
 
-        // Update the entity
-        _materialRepository.Update(material);
+        // Update the entity (use await)
+        await _materialRepository.UpdateAsync(material, cancellationToken);
 
         // Save changes
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -52,13 +55,13 @@ public sealed class MaterialStockService : IMaterialStockService
         string performedBy,
         CancellationToken cancellationToken = default)
     {
-        // بدل من الخصم المباشر، استخدم الحجز:
+        // Consume the reserved stock
         material.ConsumeStock(visitId, performedBy);
 
-        //  حدث الكيان
-        _materialRepository.Update(material);
+        // Update the entity (use await)
+        await _materialRepository.UpdateAsync(material, cancellationToken);
 
-        //  احفظ التغييرات
+        // Save changes
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -66,6 +69,8 @@ public sealed class MaterialStockService : IMaterialStockService
         Guid officeId,
         CancellationToken cancellationToken = default)
     {
-        return (List<Material>)await _materialRepository.GetLowStockItemsAsync(officeId, cancellationToken);
+        // Use AsNoTracking for read-only operations
+        var materials = await _materialRepository.GetLowStockItemsAsNoTrackingAsync(officeId, cancellationToken);
+        return materials.ToList();
     }
 }

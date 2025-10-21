@@ -72,7 +72,7 @@ public class AddPhotoCommandHandler : IRequestHandler<AddPhotoCommand, Result<Vi
 
             visit.AddPhoto(photo);
 
-            _visitRepository.Update(visit);
+            await _visitRepository.UpdateAsync(visit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var dto = _mapper.Map<VisitPhotoDto>(photo);

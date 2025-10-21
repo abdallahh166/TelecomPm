@@ -41,7 +41,7 @@ public class RejectVisitCommandHandler : IRequestHandler<RejectVisitCommand, Res
         {
             visit.Reject(reviewer.Id, reviewer.Name, request.RejectionReason);
 
-            _visitRepository.Update(visit);
+            await _visitRepository.UpdateAsync(visit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

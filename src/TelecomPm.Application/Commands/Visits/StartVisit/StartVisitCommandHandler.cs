@@ -37,7 +37,7 @@ public class StartVisitCommandHandler : IRequestHandler<StartVisitCommand, Resul
             var coordinates = Coordinates.Create(request.Latitude, request.Longitude);
             visit.StartVisit(coordinates);
 
-            _visitRepository.Update(visit);
+            await _visitRepository.UpdateAsync(visit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var dto = _mapper.Map<VisitDto>(visit);
