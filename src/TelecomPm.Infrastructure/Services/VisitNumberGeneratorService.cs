@@ -1,6 +1,7 @@
 using TelecomPM.Domain.Interfaces.Repositories;
+using TelecomPM.Domain.Services;
 
-namespace TelecomPM.Domain.Services;
+namespace TelecomPM.Infrastructure.Services;
 
 public sealed class VisitNumberGeneratorService : IVisitNumberGeneratorService
 {

@@ -34,10 +34,11 @@ public class VisitChecklistConfiguration : IEntityTypeConfiguration<VisitCheckli
 
         builder.Property(c => c.RelatedPhotoIds)
             .HasConversion(
-                v => string.Join(',', v.Select(id => id.ToString())),
-                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                      .Select(Guid.Parse).ToList())
-            .HasMaxLength(1000);
+            v => v != null ? string.Join(',', v.Select(id => id.ToString())) : string.Empty,
+            v => string.IsNullOrWhiteSpace(v)
+            ? new List<Guid>()
+            : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList()
+            );
 
         // Indexes
         builder.HasIndex(c => c.VisitId);

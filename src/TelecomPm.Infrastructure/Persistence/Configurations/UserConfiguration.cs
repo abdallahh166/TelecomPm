@@ -18,7 +18,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.Email)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(200)
+            .UseCollation("SQL_Latin1_General_CP1_CI_AS"); // case-insensitive;
 
         builder.HasIndex(u => u.Email)
             .IsUnique();

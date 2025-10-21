@@ -1,8 +1,12 @@
+using System.Collections.Generic;
+using System.Linq;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Visits;
 using TelecomPM.Domain.Enums;
+using TelecomPM.Domain.Models;
+using TelecomPM.Domain.Services;
 
-namespace TelecomPM.Domain.Services;
+namespace TelecomPM.Application.Services;
 
 public sealed class VisitValidationService : IVisitValidationService
 {

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TelecomPM.Application.Common.Interfaces;
 using TelecomPM.Domain.Interfaces.Repositories;
+using TelecomPM.Domain.Services;
 using TelecomPM.Infrastructure.Persistence;
 using TelecomPM.Infrastructure.Persistence.Repositories;
 using TelecomPM.Infrastructure.Services;
@@ -40,17 +41,18 @@ public static class DependencyInjection
         services.AddScoped<IOfficeRepository, OfficeRepository>();
         services.AddScoped<IMaterialRepository, MaterialRepository>();
 
-        // Infrastructure Services
+        // Infrastructure Services (External concerns & I/O)
         services.AddScoped<IDateTimeService, DateTimeService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IFileStorageService, BlobStorageService>();
-
-        // ✅ Fix: Register EmailService as IEmailService
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
-
         services.AddScoped<IExcelExportService, ExcelExportService>();
         services.AddScoped<IReportGenerationService, ReportGenerationService>();
+
+        // Domain Services with Infrastructure dependencies (Repository-dependent)
+        services.AddScoped<IVisitNumberGeneratorService, VisitNumberGeneratorService>();
+        services.AddScoped<IMaterialStockService, MaterialStockService>();
 
         // HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();

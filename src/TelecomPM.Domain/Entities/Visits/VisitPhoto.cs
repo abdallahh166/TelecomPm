@@ -1,92 +1,106 @@
-using TelecomPM.Domain.Common;
+﻿using TelecomPM.Domain.Common;
 using TelecomPM.Domain.Enums;
-using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.ValueObjects;
 
-namespace TelecomPM.Domain.Entities.Visits;
-
-// ==================== Visit Photo ====================
-public sealed class VisitPhoto : Entity<Guid>
+namespace TelecomPM.Domain.Entities.Visits
 {
-    public Guid VisitId { get; private set; }
-    public PhotoType Type { get; private set; }
-    public PhotoCategory Category { get; private set; }
-    public string ItemName { get; private set; } = string.Empty;
-    public string FileName { get; private set; } = string.Empty;
-    public string FilePath { get; private set; } = string.Empty;
-    public string? ThumbnailPath { get; private set; }
-    public long FileSizeBytes { get; private set; }
-    public int Width { get; private set; }
-    public int Height { get; private set; }
-    public DateTime CapturedAt { get; private set; }
-    public Coordinates? Location { get; private set; }
-    public string? Description { get; private set; }
-    public bool IsMandatory { get; private set; }
-
-    private VisitPhoto() : base() { }
-
-    private VisitPhoto(
-        Guid visitId,
-        PhotoType type,
-        PhotoCategory category,
-        string itemName,
-        string fileName,
-        string filePath,
-        bool isMandatory) : base(Guid.NewGuid())
+    public class VisitPhoto : Entity<Guid>
     {
-        VisitId = visitId;
-        Type = type;
-        Category = category;
-        ItemName = itemName;
-        FileName = fileName;
-        FilePath = filePath;
-        IsMandatory = isMandatory;
-        CapturedAt = DateTime.UtcNow;
+        public Guid VisitId { get; private set; }
+        public PhotoType Type { get; private set; }
+        public PhotoCategory Category { get; private set; }
+        public string ItemName { get; private set; } = string.Empty;
+        public string FileName { get; private set; } = string.Empty;
+        public string FilePath { get; private set; } = string.Empty;
+        public string? ThumbnailPath { get; private set; }
+        public string? Description { get; private set; }
+        public Location? Location { get; private set; }
+        public Visit? Visit { get; private set; }
+
+        private VisitPhoto() { } // For EF Core
+
+        private VisitPhoto(
+            Guid visitId,
+            PhotoType type,
+            PhotoCategory category,
+            string itemName,
+            string fileName,
+            string filePath,
+            string? thumbnailPath = null,
+            string? description = null,
+            Location? location = null)
+        {
+            VisitId = visitId;
+            Type = type;
+            Category = category;
+            ItemName = itemName;
+            FileName = fileName;
+            FilePath = filePath;
+            ThumbnailPath = thumbnailPath;
+            Description = description;
+            Location = location;
+        }
+
+        // ✅ Factory method
+        public static VisitPhoto Create(
+            Guid visitId,
+            PhotoType type,
+            PhotoCategory category,
+            string itemName,
+            string fileName,
+            string filePath)
+        {
+            return new VisitPhoto(visitId, type, category, itemName, fileName, filePath);
+        }
+
+        // ✅ Setters
+        public void SetDescription(string description)
+        {
+            Description = description;
+        }
+
+        public void SetLocation(Coordinates coordinates)
+        {
+            Location = new Location(coordinates.Latitude, coordinates.Longitude);
+        }
+
+        // ✅ Validation Helper
+        public bool MeetsRequirements()
+        {
+            // ممكن بعدين تتحقق من حاجات زي أبعاد الصورة أو الحجم لو عايز
+            return !string.IsNullOrWhiteSpace(FilePath)
+                   && !string.IsNullOrWhiteSpace(FileName);
+        }
+
+        public void UpdateDescription(string? newDescription, string updatedBy)
+        {
+            Description = newDescription;
+            MarkAsUpdated(updatedBy);
+        }
+
+        public void UpdateFilePath(string newPath, string updatedBy)
+        {
+            FilePath = newPath;
+            MarkAsUpdated(updatedBy);
+        }
+
+        public void DeletePhoto(string deletedBy)
+        {
+            MarkAsDeleted(deletedBy);
+        }
     }
 
-    public static VisitPhoto Create(
-        Guid visitId,
-        PhotoType type,
-        PhotoCategory category,
-        string itemName,
-        string fileName,
-        string filePath,
-        bool isMandatory = false)
+    public class Location
     {
-        if (string.IsNullOrWhiteSpace(fileName))
-            throw new DomainException("Photo file name is required");
+        public double? Latitude { get; private set; }
+        public double? Longitude { get; private set; }
 
-        if (string.IsNullOrWhiteSpace(filePath))
-            throw new DomainException("Photo file path is required");
+        private Location() { }
 
-        return new VisitPhoto(visitId, type, category, itemName, fileName, filePath, isMandatory);
-    }
-
-    public void SetMetadata(int width, int height, long fileSizeBytes)
-    {
-        Width = width;
-        Height = height;
-        FileSizeBytes = fileSizeBytes;
-    }
-
-    public void SetThumbnail(string thumbnailPath)
-    {
-        ThumbnailPath = thumbnailPath;
-    }
-
-    public void SetLocation(Coordinates location)
-    {
-        Location = location;
-    }
-
-    public void SetDescription(string description)
-    {
-        Description = description;
-    }
-
-    public bool MeetsRequirements()
-    {
-        // Check minimum dimensions (320x238 or 178x238)
-        return (Width >= 320 && Height >= 238) || (Width >= 178 && Height >= 238);
+        public Location(double? latitude, double? longitude)
+        {
+            Latitude = latitude;
+            Longitude = longitude;
+        }
     }
 }

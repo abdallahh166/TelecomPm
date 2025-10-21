@@ -1,7 +1,12 @@
+using System.Collections.Generic;
+using System.Linq;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Enums;
+using TelecomPM.Domain.Services;
+using TelecomPM.Domain.Models;
 
-namespace TelecomPM.Domain.Services;
+
+namespace TelecomPM.Application.Services;
 
 public sealed class PhotoChecklistGeneratorService : IPhotoChecklistGeneratorService
 {

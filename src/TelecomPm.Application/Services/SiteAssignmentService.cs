@@ -1,10 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Users;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.Interfaces.Repositories;
+using TelecomPM.Domain.Services;
 
-namespace TelecomPM.Domain.Services;
+
+namespace TelecomPM.Application.Services;
 
 public sealed class SiteAssignmentService : ISiteAssignmentService
 {

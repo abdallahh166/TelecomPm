@@ -2,8 +2,9 @@ using FluentAssertions;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Visits;
 using TelecomPM.Domain.Enums;
-using TelecomPM.Domain.Services;
+using TelecomPM.Application.Services;
 using TelecomPM.Domain.ValueObjects;
+using TelecomPM.Infrastructure.Services;
 
 namespace TelecomPM.Domain.Tests.Services;
 

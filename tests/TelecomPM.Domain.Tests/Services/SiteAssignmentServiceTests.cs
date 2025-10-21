@@ -3,7 +3,7 @@ using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Users;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Interfaces.Repositories;
-using TelecomPM.Domain.Services;
+using TelecomPM.Application.Services;
 
 namespace TelecomPM.Domain.Tests.Services;
 

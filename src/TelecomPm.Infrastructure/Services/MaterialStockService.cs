@@ -2,8 +2,9 @@
 using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.Interfaces.Repositories;
 using TelecomPM.Domain.ValueObjects;
+using TelecomPM.Domain.Services;
 
-namespace TelecomPM.Domain.Services;
+namespace TelecomPM.Infrastructure.Services;
 
 public sealed class MaterialStockService : IMaterialStockService
 {

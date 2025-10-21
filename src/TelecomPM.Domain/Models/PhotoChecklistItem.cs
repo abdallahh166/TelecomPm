@@ -1,6 +1,6 @@
 using TelecomPM.Domain.Enums;
 
-namespace TelecomPM.Domain.Services;
+namespace TelecomPM.Domain.Models; 
 
 public sealed class PhotoChecklistItem
 {

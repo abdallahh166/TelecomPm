@@ -131,9 +131,10 @@ public class SiteConfiguration : IEntityTypeConfiguration<Site>
 
         // Relationship with User (PM Engineer)
         builder.HasOne(s => s.AssignedEngineer)
-            .WithMany()
+            .WithMany(u => u.AssignedSites)
             .HasForeignKey(s => s.AssignedEngineerId)
             .OnDelete(DeleteBehavior.SetNull);
+
 
         // Indexes
         builder.HasIndex(s => s.OfficeId);

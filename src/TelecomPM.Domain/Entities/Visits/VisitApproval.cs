@@ -1,9 +1,9 @@
 using TelecomPM.Domain.Common;
 using TelecomPM.Domain.Enums;
+using TelecomPM.Domain.Exceptions;
 
 namespace TelecomPM.Domain.Entities.Visits;
 
-// ==================== Visit Approval ====================
 public sealed class VisitApproval : Entity<Guid>
 {
     public Guid VisitId { get; private set; }
@@ -22,6 +22,13 @@ public sealed class VisitApproval : Entity<Guid>
         ApprovalAction action,
         string? comments) : base(Guid.NewGuid())
     {
+        if (visitId == Guid.Empty)
+            throw new DomainException("VisitId cannot be empty.");
+        if (reviewerId == Guid.Empty)
+            throw new DomainException("ReviewerId cannot be empty.");
+        if (string.IsNullOrWhiteSpace(reviewerName))
+            throw new DomainException("Reviewer name is required.");
+
         VisitId = visitId;
         ReviewerId = reviewerId;
         ReviewerName = reviewerName;

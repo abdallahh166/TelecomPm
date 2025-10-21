@@ -1,7 +1,9 @@
+using System;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Visits;
+using TelecomPM.Domain.Services;
 
-namespace TelecomPM.Domain.Services;
+namespace TelecomPM.Application.Services;
 
 public sealed class VisitDurationCalculatorService : IVisitDurationCalculatorService
 {

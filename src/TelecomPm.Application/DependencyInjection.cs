@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using TelecomPM.Application.Common.Behaviors;
+using TelecomPM.Application.Services;
 using TelecomPM.Domain.Services;
 
 public static class DependencyInjection
@@ -31,11 +32,9 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 
-        // Domain Services
-        services.AddScoped<IVisitNumberGeneratorService, VisitNumberGeneratorService>();
-        services.AddScoped<ISiteAssignmentService, SiteAssignmentService>();
-        services.AddScoped<IMaterialStockService, MaterialStockService>();
+        // Application Services (Pure domain logic, no external dependencies)
         services.AddScoped<IVisitValidationService, VisitValidationService>();
+        services.AddScoped<ISiteAssignmentService, SiteAssignmentService>();
         services.AddScoped<IVisitDurationCalculatorService, VisitDurationCalculatorService>();
         services.AddScoped<IPhotoChecklistGeneratorService, PhotoChecklistGeneratorService>();
 

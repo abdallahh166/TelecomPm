@@ -20,7 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\TelecomPm.Application\TelecomPm.Application.csproj" />
     <ProjectReference Include="..\..\src\TelecomPM.Domain\TelecomPM.Domain.csproj" />
+    <ProjectReference Include="..\..\src\TelecomPm.Infrastructure\TelecomPm.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

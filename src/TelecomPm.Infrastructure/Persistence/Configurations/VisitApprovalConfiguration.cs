@@ -1,8 +1,9 @@
-﻿namespace TelecomPM.Infrastructure.Persistence.Configurations;
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TelecomPM.Domain.Entities.Users;
 using TelecomPM.Domain.Entities.Visits;
+
+namespace TelecomPM.Infrastructure.Persistence.Configurations;
 
 public class VisitApprovalConfiguration : IEntityTypeConfiguration<VisitApproval>
 {
@@ -23,6 +24,20 @@ public class VisitApprovalConfiguration : IEntityTypeConfiguration<VisitApproval
 
         builder.Property(a => a.Comments)
             .HasMaxLength(1000);
+
+        builder.Property(a => a.ReviewedAt)
+            .IsRequired();
+
+        // علاقات (اختيارية حسب الديزاين)
+        builder.HasOne<Visit>()
+            .WithMany()
+            .HasForeignKey(a => a.VisitId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(a => a.ReviewerId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Indexes
         builder.HasIndex(a => a.VisitId);

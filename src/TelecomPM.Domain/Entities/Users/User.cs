@@ -1,4 +1,5 @@
 using TelecomPM.Domain.Common;
+using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.ValueObjects;
@@ -25,6 +26,11 @@ public sealed class User : AggregateRoot<Guid>
     // Assignments
     private readonly List<Guid> _assignedSiteIds = new();
     public IReadOnlyCollection<Guid> AssignedSiteIds => _assignedSiteIds.AsReadOnly();
+
+    // Navigation to Sites
+    private readonly List<Site> _assignedSites = new();
+    public IReadOnlyCollection<Site> AssignedSites => _assignedSites.AsReadOnly();
+
 
     private User() : base() { }
 
