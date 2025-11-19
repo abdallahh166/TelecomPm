@@ -77,6 +77,20 @@ public class SiteExtendedTests
         site.UpdateStatus(SiteStatus.OffAir);
         site.Status.Should().Be(SiteStatus.OffAir);
     }
+
+    [Fact]
+    public void SetCoolingSystem_ShouldUpdateDerivedMetrics()
+    {
+        var site = CreateBasicSite(Guid.NewGuid());
+        var initialPhotos = site.RequiredPhotosCount;
+        var initialDuration = site.EstimatedVisitDurationMinutes;
+
+        var cooling = SiteCoolingSystem.Create(site.Id, 2);
+        site.SetCoolingSystem(cooling);
+
+        site.RequiredPhotosCount.Should().BeGreaterThan(initialPhotos);
+        site.EstimatedVisitDurationMinutes.Should().BeGreaterThan(initialDuration);
+    }
 }
 
 

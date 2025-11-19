@@ -31,6 +31,16 @@ public class SiteEventsTests
 
         site.DomainEvents.Should().ContainSingle(e => e.GetType() == typeof(SiteStatusChangedEvent) && ((SiteStatusChangedEvent)e).NewStatus == SiteStatus.OffAir);
     }
+
+    [Fact]
+    public void UpdateStatus_SameStatus_ShouldNotRaiseEvent()
+    {
+        var site = NewSite();
+        site.ClearDomainEvents();
+        site.UpdateStatus(SiteStatus.OnAir);
+
+        site.DomainEvents.Should().BeEmpty();
+    }
 }
 
 

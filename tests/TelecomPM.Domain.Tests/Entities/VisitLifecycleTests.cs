@@ -24,14 +24,12 @@ public class VisitLifecycleTests
         // Add minimal required data
         for (int i = 0; i < 30; i++)
         {
-            var p1 = VisitPhoto.Create(visit.Id, PhotoType.Before, PhotoCategory.ShelterInside, "", "b" + i, "/b", true);
-            p1.SetMetadata(400, 300, 1000);
+            var p1 = VisitPhoto.Create(visit.Id, PhotoType.Before, PhotoCategory.ShelterInside, "", "b" + i, "/b");
             visit.AddPhoto(p1);
         }
         for (int i = 0; i < 30; i++)
         {
-            var p2 = VisitPhoto.Create(visit.Id, PhotoType.After, PhotoCategory.ShelterInside, "", "a" + i, "/a", true);
-            p2.SetMetadata(400, 300, 1000);
+            var p2 = VisitPhoto.Create(visit.Id, PhotoType.After, PhotoCategory.ShelterInside, "", "a" + i, "/a");
             visit.AddPhoto(p2);
         }
 

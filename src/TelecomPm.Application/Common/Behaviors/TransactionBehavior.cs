@@ -26,24 +26,27 @@ public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (!typeof(TRequest).Name.EndsWith("Command"))
+        if (!IsCommand(request) || _unitOfWork.HasActiveTransaction)
+        {
             return await next();
+        }
 
         try
         {
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);
-
-            var response = await next();
-
-            await _unitOfWork.CommitTransactionAsync(cancellationToken);
-
-            return response;
+            return await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                return await next();
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Transaction failed for {RequestName}", typeof(TRequest).Name);
-            await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             throw;
         }
+    }
+
+    private static bool IsCommand(TRequest request)
+    {
+        return typeof(TRequest).Name.EndsWith("Command", StringComparison.Ordinal);
     }
 }

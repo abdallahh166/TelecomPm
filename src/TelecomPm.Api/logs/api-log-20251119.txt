@@ -1,0 +1,6 @@
+2025-11-19 18:38:06.246 +02:00 [Information] Now listening on: "https://localhost:7259"
+2025-11-19 18:38:06.309 +02:00 [Information] Now listening on: "http://localhost:5277"
+2025-11-19 18:38:06.695 +02:00 [Information] Application started. Press Ctrl+C to shut down.
+2025-11-19 18:38:06.697 +02:00 [Information] Hosting environment: "Development"
+2025-11-19 18:38:06.699 +02:00 [Information] Content root path: "C:\Users\abdal\source\repos\TelecomPM\src\TelecomPm.Api"
+2025-11-19 18:39:36.099 +02:00 [Information] HTTP "GET" "/" responded 404 in 3.1040 ms

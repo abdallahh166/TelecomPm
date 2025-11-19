@@ -23,8 +23,7 @@ public class VisitEditCancelRulesTests
         for (int i = 0; i < 60; i++)
         {
             var type = i < 30 ? PhotoType.Before : PhotoType.After;
-            var p = VisitPhoto.Create(v.Id, type, PhotoCategory.ShelterInside, "", $"f{i}", "/p", true);
-            p.SetMetadata(400, 300, 1000);
+            var p = VisitPhoto.Create(v.Id, type, PhotoCategory.ShelterInside, "", $"f{i}", "/p");
             v.AddPhoto(p);
         }
         for (int i = 0; i < 15; i++)
@@ -57,8 +56,7 @@ public class VisitEditCancelRulesTests
         for (int i = 0; i < 60; i++)
         {
             var type = i < 30 ? PhotoType.Before : PhotoType.After;
-            var p = VisitPhoto.Create(v.Id, type, PhotoCategory.ShelterInside, "", $"f{i}", "/p", true);
-            p.SetMetadata(400, 300, 1000);
+            var p = VisitPhoto.Create(v.Id, type, PhotoCategory.ShelterInside, "", $"f{i}", "/p");
             v.AddPhoto(p);
         }
         for (int i = 0; i < 15; i++)

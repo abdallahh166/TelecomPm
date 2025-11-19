@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TelecomPM.Application.Common.Interfaces;
 using TelecomPM.Domain.Interfaces.Repositories;
+using TelecomPM.Domain.Interfaces.Services;
 using TelecomPM.Domain.Services;
 using TelecomPM.Infrastructure.Persistence;
 using TelecomPM.Infrastructure.Persistence.Repositories;
@@ -17,18 +18,11 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Database - Register without custom factory first
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+        {
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
-
-        // ✅ Fix: Inject IPublisher into DbContext via property injection
-        services.AddScoped(provider =>
-        {
-            var context = provider.GetRequiredService<ApplicationDbContext>();
-            context.Publisher = provider.GetRequiredService<IPublisher>();
-            return context;
+                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
         });
 
         // Unit of Work
@@ -44,6 +38,9 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IOfficeRepository, OfficeRepository>();
         services.AddScoped<IMaterialRepository, MaterialRepository>();
+
+        // Domain event dispatcher
+        services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
         // Infrastructure Services (External concerns & I/O)
         services.AddScoped<IDateTimeService, DateTimeService>();

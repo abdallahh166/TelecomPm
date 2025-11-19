@@ -15,14 +15,12 @@ public class VisitReviewFlowTests
 
         for (int i = 0; i < 30; i++)
         {
-            var b = VisitPhoto.Create(v.Id, PhotoType.Before, PhotoCategory.ShelterInside, "", "b"+i, "/b", true);
-            b.SetMetadata(400, 300, 1000);
+            var b = VisitPhoto.Create(v.Id, PhotoType.Before, PhotoCategory.ShelterInside, "", "b"+i, "/b");
             v.AddPhoto(b);
         }
         for (int i = 0; i < 30; i++)
         {
-            var a = VisitPhoto.Create(v.Id, PhotoType.After, PhotoCategory.ShelterInside, "", "a"+i, "/a", true);
-            a.SetMetadata(400, 300, 1000);
+            var a = VisitPhoto.Create(v.Id, PhotoType.After, PhotoCategory.ShelterInside, "", "a"+i, "/a");
             v.AddPhoto(a);
         }
         for (int i = 0; i < 15; i++)

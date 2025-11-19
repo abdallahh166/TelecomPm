@@ -1,21 +1,25 @@
 ﻿namespace TelecomPM.Infrastructure.Persistence;
 
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;
-using TelecomPM.Application.Common.Events;
 using TelecomPM.Domain.Common;
 using TelecomPM.Domain.Entities.Materials;
 using TelecomPM.Domain.Entities.Offices;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Users;
 using TelecomPM.Domain.Entities.Visits;
+using TelecomPM.Domain.Interfaces.Services;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    private readonly IDomainEventDispatcher _domainEventDispatcher;
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        IDomainEventDispatcher domainEventDispatcher) : base(options)
     {
+        _domainEventDispatcher = domainEventDispatcher ?? throw new ArgumentNullException(nameof(domainEventDispatcher));
     }
 
     // Visit Aggregates
@@ -70,7 +74,6 @@ public class ApplicationDbContext : DbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Dispatch domain events before saving
         await DispatchDomainEventsAsync(cancellationToken);
 
         return await base.SaveChangesAsync(cancellationToken);
@@ -90,21 +93,9 @@ public class ApplicationDbContext : DbContext
 
         domainEntities.ForEach(entity => entity.ClearDomainEvents());
 
-        foreach (var domainEvent in domainEvents)
-        {
-            // ✅ Create wrapper notification
-            var notificationType = typeof(DomainEventNotification<>)
-                .MakeGenericType(domainEvent.GetType());
+        if (domainEvents.Count == 0)
+            return;
 
-            var notification = Activator.CreateInstance(notificationType, domainEvent);
-
-            if (notification != null)
-            {
-                await Publisher.Publish(notification, cancellationToken);
-            }
-        }
+        await _domainEventDispatcher.DispatchAsync(domainEvents, cancellationToken);
     }
-
-    // Will be injected via DI
-    public IPublisher Publisher { get; set; } = null!;
 }

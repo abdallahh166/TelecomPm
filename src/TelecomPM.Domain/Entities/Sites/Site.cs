@@ -152,11 +152,13 @@ public sealed class Site : AggregateRoot<Guid>
     public void SetCoolingSystem(SiteCoolingSystem coolingSystem)
     {
         CoolingSystem = coolingSystem;
+        RecalculateComplexity();
     }
 
     public void SetFireSafety(SiteFireSafety fireSafety)
     {
         FireSafety = fireSafety;
+        RecalculateComplexity();
     }
 
     public void SetSharingInfo(SiteSharing sharingInfo)
@@ -167,6 +169,9 @@ public sealed class Site : AggregateRoot<Guid>
 
     public void UpdateStatus(SiteStatus status)
     {
+        if (Status == status)
+            return;
+
         var old = Status;
         Status = status;
         MarkAsUpdated("System");
