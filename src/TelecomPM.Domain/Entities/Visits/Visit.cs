@@ -245,6 +245,29 @@ public sealed class Visit : AggregateRoot<Guid>
         EngineerNotes = reason;
     }
 
+    public void Reschedule(DateTime newScheduledDate, string? reason = null)
+    {
+        if (Status != VisitStatus.Scheduled)
+            throw new DomainException("Only scheduled visits can be rescheduled");
+
+        if (newScheduledDate < DateTime.Today)
+            throw new DomainException("New scheduled date must be today or in the future");
+
+        var oldDate = ScheduledDate;
+        ScheduledDate = newScheduledDate;
+        
+        if (!string.IsNullOrWhiteSpace(reason))
+        {
+            EngineerNotes = $"Rescheduled from {oldDate:yyyy-MM-dd} to {newScheduledDate:yyyy-MM-dd}. Reason: {reason}";
+        }
+        else
+        {
+            EngineerNotes = $"Rescheduled from {oldDate:yyyy-MM-dd} to {newScheduledDate:yyyy-MM-dd}";
+        }
+
+        AddDomainEvent(new VisitScheduledEvent(Id, SiteId, EngineerId, newScheduledDate));
+    }
+
     // ==================== Photos Management ====================
     
     public void AddPhoto(VisitPhoto photo)

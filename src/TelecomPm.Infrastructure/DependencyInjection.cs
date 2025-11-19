@@ -20,10 +20,19 @@ public static class DependencyInjection
     {
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
+            var interceptors = new[]
+            {
+                serviceProvider.GetRequiredService<TelecomPM.Infrastructure.Persistence.Interceptors.AuditInterceptor>()
+            };
+
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+                .AddInterceptors(interceptors);
         });
+
+        // Register interceptors
+        services.AddScoped<TelecomPM.Infrastructure.Persistence.Interceptors.AuditInterceptor>();
 
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();

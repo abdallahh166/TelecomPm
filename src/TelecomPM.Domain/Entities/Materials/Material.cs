@@ -111,7 +111,7 @@ public sealed class Material : AggregateRoot<Guid>
         Supplier = supplier;
     }
 
-    public void AddStock(MaterialQuantity quantity)
+    public void AddStock(MaterialQuantity quantity, string? restockedBy = null)
     {
         var before = CurrentStock;
         CurrentStock = CurrentStock.Add(quantity);
@@ -125,8 +125,20 @@ public sealed class Material : AggregateRoot<Guid>
             before,
             CurrentStock,
             "Stock added",
-            "System"
+            restockedBy ?? "System"
         ));
+
+        // Raise MaterialRestockedEvent
+        AddDomainEvent(new MaterialRestockedEvent(
+            Id,
+            Name,
+            OfficeId,
+            quantity.Value,
+            quantity.Unit.ToString(),
+            before.Value,
+            CurrentStock.Value,
+            restockedBy ?? "System",
+            DateTime.UtcNow));
     }
 
 
@@ -173,6 +185,33 @@ public sealed class Material : AggregateRoot<Guid>
             reason,
             "System"
         ));
+    }
+
+    public void TransferStock(MaterialQuantity quantity, string reason, string performedBy)
+    {
+        var before = CurrentStock;
+        CurrentStock = CurrentStock.Subtract(quantity);
+        MarkAsUpdated($"Stock transferred: {reason}");
+
+        _transactions.Add(MaterialTransaction.Create(
+            Id,
+            TransactionType.Transfer,
+            quantity,
+            before,
+            CurrentStock,
+            reason,
+            performedBy
+        ));
+
+        if (IsStockLow())
+        {
+            AddDomainEvent(new LowStockAlertEvent(
+                Id,
+                Name,
+                OfficeId,
+                CurrentStock.Value,
+                MinimumStock.Value));
+        }
     }
 
     public void UpdateMinimumStock(MaterialQuantity newMinimum)

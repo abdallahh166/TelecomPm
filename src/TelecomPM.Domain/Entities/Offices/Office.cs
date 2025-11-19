@@ -1,4 +1,5 @@
 using TelecomPM.Domain.Common;
+using TelecomPM.Domain.Events.OfficeEvents;
 using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.ValueObjects;
 
@@ -52,7 +53,9 @@ public sealed class Office : AggregateRoot<Guid>
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Office name is required");
 
-        return new Office(code.ToUpper(), name, region, address);
+        var office = new Office(code.ToUpper(), name, region, address);
+        office.AddDomainEvent(new OfficeCreatedEvent(office.Id, office.Code, office.Name, office.Region));
+        return office;
     }
 
     public void UpdateInfo(string name, string region, Address address)

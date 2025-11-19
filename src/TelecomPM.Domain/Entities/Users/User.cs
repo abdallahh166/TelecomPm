@@ -1,6 +1,7 @@
 using TelecomPM.Domain.Common;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Enums;
+using TelecomPM.Domain.Events.UserEvents;
 using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.ValueObjects;
 
@@ -65,7 +66,9 @@ public sealed class User : AggregateRoot<Guid>
         if (!IsValidEmail(email))
             throw new DomainException("Invalid email format");
 
-        return new User(name, email, phoneNumber, role, officeId);
+        var user = new User(name, email, phoneNumber, role, officeId);
+        user.AddDomainEvent(new UserCreatedEvent(user.Id, name, email, role, officeId));
+        return user;
     }
 
     public void UpdateProfile(string name, string phoneNumber)
@@ -80,8 +83,14 @@ public sealed class User : AggregateRoot<Guid>
 
     public void UpdateRole(UserRole newRole)
     {
+        var oldRole = Role;
         Role = newRole;
         MarkAsUpdated(Email);
+        
+        if (oldRole != newRole)
+        {
+            AddDomainEvent(new UserRoleChangedEvent(Id, Name, oldRole, newRole, OfficeId));
+        }
     }
 
     public void AssignToOffice(Guid officeId)

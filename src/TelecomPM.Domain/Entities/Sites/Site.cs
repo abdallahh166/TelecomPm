@@ -289,7 +289,7 @@ public sealed class Site : AggregateRoot<Guid>
     {
         return Status == SiteStatus.OnAir && !IsDeleted;
     }
-    public void AssignToEngineer(Guid engineerId)
+    public void AssignToEngineer(Guid engineerId, Guid? assignedBy = null)
     {
         if (AssignedEngineerId.HasValue)
             throw new DomainException("Site is already assigned to an engineer.");
@@ -297,7 +297,7 @@ public sealed class Site : AggregateRoot<Guid>
         AssignedEngineerId = engineerId;
         MarkAsUpdated("System");
 
-        AddDomainEvent(new SiteAssignedToEngineerEvent(Id, engineerId, Guid.Empty)); // AssignedBy تضبطه في App Layer
+        AddDomainEvent(new SiteAssignedToEngineerEvent(Id, engineerId, assignedBy ?? Guid.Empty));
     }
 
     public void UnassignEngineer()
