@@ -28,16 +28,8 @@ public class VisitApprovalConfiguration : IEntityTypeConfiguration<VisitApproval
         builder.Property(a => a.ReviewedAt)
             .IsRequired();
 
-        // علاقات (اختيارية حسب الديزاين)
-        builder.HasOne<Visit>()
-            .WithMany()
-            .HasForeignKey(a => a.VisitId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne<User>()
-            .WithMany()
-            .HasForeignKey(a => a.ReviewerId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // Relationships are already configured in VisitConfiguration.cs
+        // Only define indexes here
 
         // Indexes
         builder.HasIndex(a => a.VisitId);
