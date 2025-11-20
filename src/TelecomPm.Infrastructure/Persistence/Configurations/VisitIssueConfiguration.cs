@@ -2,7 +2,11 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TelecomPM.Domain.Entities.Visits;
+using TelecomPM.Infrastructure.Persistence;
 
 public class VisitIssueConfiguration : IEntityTypeConfiguration<VisitIssue>
 {
@@ -38,12 +42,15 @@ public class VisitIssueConfiguration : IEntityTypeConfiguration<VisitIssue>
         builder.Property(i => i.Resolution)
             .HasMaxLength(2000);
 
+        var guidListComparer = ValueComparerFactory.CreateGuidListComparer();
+
         builder.Property(i => i.PhotoIds)
             .HasConversion(
                 v => string.Join(',', v.Select(id => id.ToString())),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
                       .Select(Guid.Parse).ToList())
-            .HasMaxLength(2000);
+            .HasMaxLength(2000)
+            .Metadata.SetValueComparer(guidListComparer);
 
         // Indexes
         builder.HasIndex(i => i.VisitId);

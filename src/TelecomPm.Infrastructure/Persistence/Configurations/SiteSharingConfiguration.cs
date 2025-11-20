@@ -1,13 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using TelecomPM.Domain.Entities.Sites;
+using TelecomPM.Infrastructure.Persistence;
 
-namespace TelecomPm.Infrastructure.Persistence.Configurations
+namespace TelecomPM.Infrastructure.Persistence.Configurations
 {
     public class SiteSharingConfiguration : IEntityTypeConfiguration<SiteSharing>
     {
@@ -21,12 +19,14 @@ namespace TelecomPm.Infrastructure.Persistence.Configurations
                 .HasMaxLength(100);
 
             // GuestOperators as JSON
+            var stringListComparer = ValueComparerFactory.CreateStringListComparer();
+
             builder.Property(s => s.GuestOperators)
                 .HasColumnType("nvarchar(max)")
                 .HasConversion(
-                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
-                    v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions)null) ?? new List<string>()
-                );
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
+                .Metadata.SetValueComparer(stringListComparer);
 
             builder.HasIndex(s => s.SiteId);
         }

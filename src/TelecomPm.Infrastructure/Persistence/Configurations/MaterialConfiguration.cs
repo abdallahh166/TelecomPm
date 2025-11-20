@@ -38,6 +38,7 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
         {
             stock.Property(s => s.Value)
                 .HasColumnName("CurrentStockValue")
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             stock.Property(s => s.Unit)
@@ -52,6 +53,7 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
         {
             stock.Property(s => s.Value)
                 .HasColumnName("MinimumStockValue")
+                .HasPrecision(18, 2)
                 .IsRequired();
 
             stock.Property(s => s.Unit)
@@ -65,7 +67,8 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
         builder.OwnsOne(m => m.ReorderQuantity, stock =>
         {
             stock.Property(s => s.Value)
-                .HasColumnName("ReorderQuantityValue");
+                .HasColumnName("ReorderQuantityValue")
+                .HasPrecision(18, 2);
 
             stock.Property(s => s.Unit)
                 .HasColumnName("ReorderQuantityUnit")
@@ -127,6 +130,7 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
             {
                 qty.Property(q => q.Value)
                     .HasColumnName("QuantityValue")
+                    .HasPrecision(18, 2)
                     .IsRequired();
 
                 qty.Property(q => q.Unit)

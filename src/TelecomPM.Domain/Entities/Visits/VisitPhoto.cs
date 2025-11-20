@@ -14,7 +14,7 @@ namespace TelecomPM.Domain.Entities.Visits
         public string FilePath { get; private set; } = string.Empty;
         public string? ThumbnailPath { get; private set; }
         public string? Description { get; private set; }
-        public Location? Location { get; private set; }
+        public Location Location { get; private set; } = Location.Empty;
         public Visit? Visit { get; private set; }
 
         private VisitPhoto() { } // For EF Core
@@ -38,7 +38,7 @@ namespace TelecomPM.Domain.Entities.Visits
             FilePath = filePath;
             ThumbnailPath = thumbnailPath;
             Description = description;
-            Location = location;
+            Location = location ?? Location.Empty;
         }
 
         // ✅ Factory method
@@ -102,5 +102,7 @@ namespace TelecomPM.Domain.Entities.Visits
             Latitude = latitude;
             Longitude = longitude;
         }
+
+        public static Location Empty => new Location(null, null);
     }
 }

@@ -3,7 +3,6 @@ namespace TelecomPm.Api.Controllers;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TelecomPM.Application.Queries.Reports.GetEngineerPerformanceReport;
 using TelecomPM.Application.Queries.Reports.GetSiteMaintenanceReport;
@@ -16,11 +15,6 @@ using TelecomPM.Application.Queries.Reports.GetIssueAnalyticsReport;
 [Route("api/[controller]")]
 public sealed class AnalyticsController : ApiControllerBase
 {
-    public AnalyticsController(ISender sender)
-        : base(sender)
-    {
-    }
-
     [HttpGet("engineer-performance/{engineerId:guid}")]
     public async Task<IActionResult> GetEngineerPerformance(
         Guid engineerId,
@@ -35,7 +29,7 @@ public sealed class AnalyticsController : ApiControllerBase
             ToDate = toDate
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -53,7 +47,7 @@ public sealed class AnalyticsController : ApiControllerBase
             ToDate = toDate
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -71,7 +65,7 @@ public sealed class AnalyticsController : ApiControllerBase
             ToDate = toDate
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -89,7 +83,7 @@ public sealed class AnalyticsController : ApiControllerBase
             ToDate = toDate
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -117,7 +111,7 @@ public sealed class AnalyticsController : ApiControllerBase
             Period = trendPeriod
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -137,7 +131,7 @@ public sealed class AnalyticsController : ApiControllerBase
             ToDate = toDate
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 }

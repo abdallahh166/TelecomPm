@@ -51,6 +51,11 @@ public class VisitPhotoConfiguration : IEntityTypeConfiguration<VisitPhoto>
                 .HasColumnName("Longitude")
                 .HasPrecision(11, 8);
         });
+        builder.Navigation(p => p.Location).IsRequired();
+
+        builder.HasOne(p => p.Visit)
+            .WithMany(v => v.Photos)
+            .HasForeignKey(p => p.VisitId);
 
         // Indexes
         builder.HasIndex(p => p.VisitId);

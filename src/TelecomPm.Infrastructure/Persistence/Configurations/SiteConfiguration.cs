@@ -26,10 +26,10 @@ public class SiteConfiguration : IEntityTypeConfiguration<Site>
 
             code.Property(c => c.SequenceNumber)
                 .HasColumnName("SiteSequenceNumber");
-        });
 
-        builder.HasIndex(s => s.SiteCode.Value)
-            .IsUnique();
+            code.HasIndex(c => c.Value)
+                .IsUnique();
+        });
 
         builder.Property(s => s.Name)
             .IsRequired()

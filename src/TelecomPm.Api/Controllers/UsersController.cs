@@ -3,7 +3,6 @@ namespace TelecomPm.Api.Controllers;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TelecomPm.Api.Contracts.Users;
 using TelecomPM.Application.Commands.Users.CreateUser;
@@ -22,11 +21,6 @@ using TelecomPM.Domain.Enums;
 [Route("api/[controller]")]
 public sealed class UsersController : ApiControllerBase
 {
-    public UsersController(ISender sender)
-        : base(sender)
-    {
-    }
-
     [HttpPost]
     public async Task<IActionResult> Create(
         [FromBody] CreateUserRequest request,
@@ -43,7 +37,7 @@ public sealed class UsersController : ApiControllerBase
             Specializations = request.Specializations
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
 
         if (result.IsSuccess && result.Value is not null)
         {
@@ -62,7 +56,7 @@ public sealed class UsersController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var query = new GetUserByIdQuery { UserId = userId };
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -79,7 +73,7 @@ public sealed class UsersController : ApiControllerBase
             PhoneNumber = request.PhoneNumber
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -93,7 +87,7 @@ public sealed class UsersController : ApiControllerBase
             UserId = userId,
             DeletedBy = "System" // TODO: Get from current user context
         };
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -109,7 +103,7 @@ public sealed class UsersController : ApiControllerBase
             NewRole = request.NewRole
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -119,7 +113,7 @@ public sealed class UsersController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var command = new ActivateUserCommand { UserId = userId };
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -129,7 +123,7 @@ public sealed class UsersController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var command = new DeactivateUserCommand { UserId = userId };
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -139,7 +133,7 @@ public sealed class UsersController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var query = new GetUsersByOfficeQuery { OfficeId = officeId };
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -154,7 +148,7 @@ public sealed class UsersController : ApiControllerBase
         }
 
         var query = new GetUsersByRoleQuery { Role = userRole };
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -172,7 +166,7 @@ public sealed class UsersController : ApiControllerBase
             ToDate = toDate
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 }

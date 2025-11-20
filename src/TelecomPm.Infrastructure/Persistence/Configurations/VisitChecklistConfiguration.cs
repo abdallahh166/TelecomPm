@@ -2,7 +2,11 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TelecomPM.Domain.Entities.Visits;
+using TelecomPM.Infrastructure.Persistence;
 
 public class VisitChecklistConfiguration : IEntityTypeConfiguration<VisitChecklist>
 {
@@ -32,13 +36,15 @@ public class VisitChecklistConfiguration : IEntityTypeConfiguration<VisitCheckli
         builder.Property(c => c.Notes)
             .HasMaxLength(500);
 
+        var guidListComparer = ValueComparerFactory.CreateGuidListComparer();
+
         builder.Property(c => c.RelatedPhotoIds)
             .HasConversion(
-            v => v != null ? string.Join(',', v.Select(id => id.ToString())) : string.Empty,
-            v => string.IsNullOrWhiteSpace(v)
-            ? new List<Guid>()
-            : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList()
-            );
+                v => v != null ? string.Join(',', v.Select(id => id.ToString())) : string.Empty,
+                v => string.IsNullOrWhiteSpace(v)
+                    ? new List<Guid>()
+                    : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList())
+            .Metadata.SetValueComparer(guidListComparer);
 
         // Indexes
         builder.HasIndex(c => c.VisitId);

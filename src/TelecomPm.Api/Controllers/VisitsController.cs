@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TelecomPm.Api.Contracts.Visits;
 using TelecomPM.Application.Commands.Visits.AddPhoto;
@@ -21,17 +20,14 @@ using TelecomPM.Application.Queries.Visits.GetPendingReviews;
 using TelecomPM.Application.Queries.Visits.GetScheduledVisits;
 using TelecomPM.Application.Queries.Visits.GetVisitById;
 
+[ApiController]
+[Route("api/[controller]")]
 public sealed class VisitsController : ApiControllerBase
 {
-    public VisitsController(ISender sender)
-        : base(sender)
-    {
-    }
-
     [HttpGet("{visitId:guid}")]
     public async Task<IActionResult> GetById(Guid visitId, CancellationToken cancellationToken)
     {
-        var result = await Sender.Send(
+        var result = await Mediator.Send(
             new GetVisitByIdQuery { VisitId = visitId },
             cancellationToken);
 
@@ -54,7 +50,7 @@ public sealed class VisitsController : ApiControllerBase
             To = parameters.To
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -63,7 +59,7 @@ public sealed class VisitsController : ApiControllerBase
         [FromQuery] Guid? officeId,
         CancellationToken cancellationToken)
     {
-        var result = await Sender.Send(
+        var result = await Mediator.Send(
             new GetPendingReviewsQuery { OfficeId = officeId },
             cancellationToken);
 
@@ -75,7 +71,7 @@ public sealed class VisitsController : ApiControllerBase
         [FromQuery] ScheduledVisitsQueryParameters parameters,
         CancellationToken cancellationToken)
     {
-        var result = await Sender.Send(
+        var result = await Mediator.Send(
             new GetScheduledVisitsQuery
             {
                 Date = parameters.Date,
@@ -101,7 +97,7 @@ public sealed class VisitsController : ApiControllerBase
             TechnicianNames = request.TechnicianNames ?? new List<string>()
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
 
         if (result.IsSuccess && result.Value is not null)
         {
@@ -127,7 +123,7 @@ public sealed class VisitsController : ApiControllerBase
             Longitude = request.Longitude
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -143,14 +139,14 @@ public sealed class VisitsController : ApiControllerBase
             EngineerNotes = request.EngineerNotes
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
     [HttpPost("{visitId:guid}/submit")]
     public async Task<IActionResult> Submit(Guid visitId, CancellationToken cancellationToken)
     {
-        var result = await Sender.Send(
+        var result = await Mediator.Send(
             new SubmitVisitCommand { VisitId = visitId },
             cancellationToken);
 
@@ -170,7 +166,7 @@ public sealed class VisitsController : ApiControllerBase
             Notes = request.Notes
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -187,7 +183,7 @@ public sealed class VisitsController : ApiControllerBase
             RejectionReason = request.RejectionReason
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -204,7 +200,7 @@ public sealed class VisitsController : ApiControllerBase
             CorrectionNotes = request.CorrectionNotes
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -228,7 +224,7 @@ public sealed class VisitsController : ApiControllerBase
             Notes = request.Notes
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -254,7 +250,7 @@ public sealed class VisitsController : ApiControllerBase
             Longitude = request.Longitude
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 }

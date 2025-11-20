@@ -2,7 +2,10 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Linq;
 using TelecomPM.Domain.Entities.Users;
+using TelecomPM.Infrastructure.Persistence;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
@@ -33,18 +36,23 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasConversion<string>()
             .HasMaxLength(50);
 
+        var stringListComparer = ValueComparerFactory.CreateStringListComparer();
+        var guidListComparer = ValueComparerFactory.CreateGuidListComparer();
+
         builder.Property(u => u.Specializations)
             .HasConversion(
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList())
-            .HasMaxLength(500);
+            .HasMaxLength(500)
+            .Metadata.SetValueComparer(stringListComparer);
 
         builder.Property(u => u.AssignedSiteIds)
             .HasConversion(
                 v => string.Join(',', v.Select(id => id.ToString())),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
                       .Select(Guid.Parse).ToList())
-            .HasMaxLength(5000);
+            .HasMaxLength(5000)
+            .Metadata.SetValueComparer(guidListComparer);
 
         builder.Property(u => u.PerformanceRating)
             .HasPrecision(3, 2);

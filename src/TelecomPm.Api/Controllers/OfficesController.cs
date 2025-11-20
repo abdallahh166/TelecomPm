@@ -3,7 +3,6 @@ namespace TelecomPm.Api.Controllers;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TelecomPm.Api.Contracts.Offices;
 using TelecomPM.Application.Commands.Offices.CreateOffice;
@@ -14,17 +13,11 @@ using TelecomPM.Application.Queries.Offices.GetOfficeById;
 using TelecomPM.Application.Queries.Offices.GetAllOffices;
 using TelecomPM.Application.Queries.Offices.GetOfficesByRegion;
 using TelecomPM.Application.Queries.Offices.GetOfficeStatistics;
-using TelecomPM.Domain.ValueObjects;
 
 [ApiController]
 [Route("api/[controller]")]
 public sealed class OfficesController : ApiControllerBase
 {
-    public OfficesController(ISender sender)
-        : base(sender)
-    {
-    }
-
     [HttpPost]
     public async Task<IActionResult> Create(
         [FromBody] CreateOfficeRequest request,
@@ -46,7 +39,7 @@ public sealed class OfficesController : ApiControllerBase
             ContactEmail = request.ContactEmail
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
 
         if (result.IsSuccess && result.Value is not null)
         {
@@ -65,7 +58,7 @@ public sealed class OfficesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var query = new GetOfficeByIdQuery { OfficeId = officeId };
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -73,7 +66,7 @@ public sealed class OfficesController : ApiControllerBase
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var query = new GetAllOfficesQuery();
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -83,7 +76,7 @@ public sealed class OfficesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var query = new GetOfficesByRegionQuery { Region = region };
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -93,7 +86,7 @@ public sealed class OfficesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var query = new GetOfficeStatisticsQuery { OfficeId = officeId };
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -114,7 +107,7 @@ public sealed class OfficesController : ApiControllerBase
             PostalCode = null
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -132,7 +125,7 @@ public sealed class OfficesController : ApiControllerBase
             ContactEmail = request.ContactEmail ?? string.Empty
         };
 
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 
@@ -142,7 +135,7 @@ public sealed class OfficesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var command = new DeleteOfficeCommand { OfficeId = officeId };
-        var result = await Sender.Send(command, cancellationToken);
+        var result = await Mediator.Send(command, cancellationToken);
         return HandleResult(result);
     }
 }

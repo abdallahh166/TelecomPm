@@ -3,24 +3,20 @@ namespace TelecomPm.Api.Controllers;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TelecomPm.Api.Contracts.Sites;
 using TelecomPM.Application.Queries.Sites.GetOfficeSites;
 using TelecomPM.Application.Queries.Sites.GetSiteById;
 using TelecomPM.Application.Queries.Sites.GetSitesNeedingMaintenance;
 
+[ApiController]
+[Route("api/[controller]")]
 public sealed class SitesController : ApiControllerBase
 {
-    public SitesController(ISender sender)
-        : base(sender)
-    {
-    }
-
     [HttpGet("{siteId:guid}")]
     public async Task<IActionResult> GetById(Guid siteId, CancellationToken cancellationToken)
     {
-        var result = await Sender.Send(
+        var result = await Mediator.Send(
             new GetSiteByIdQuery { SiteId = siteId },
             cancellationToken);
 
@@ -42,7 +38,7 @@ public sealed class SitesController : ApiControllerBase
             Status = parameters.Status
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 
@@ -57,7 +53,7 @@ public sealed class SitesController : ApiControllerBase
             OfficeId = parameters.OfficeId
         };
 
-        var result = await Sender.Send(query, cancellationToken);
+        var result = await Mediator.Send(query, cancellationToken);
         return HandleResult(result);
     }
 }

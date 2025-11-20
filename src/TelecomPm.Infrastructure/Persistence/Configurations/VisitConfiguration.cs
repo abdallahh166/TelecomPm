@@ -2,7 +2,10 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Linq;
 using TelecomPM.Domain.Entities.Visits;
+using TelecomPM.Infrastructure.Persistence;
 
 public class VisitConfiguration : IEntityTypeConfiguration<Visit>
 {
@@ -44,11 +47,14 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
             .HasConversion<string>()
             .HasMaxLength(50);
 
+        var stringListComparer = ValueComparerFactory.CreateStringListComparer();
+
         builder.Property(v => v.TechnicianNames)
             .HasConversion(
                 v => string.Join(',', v),
                 v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList())
-            .HasMaxLength(500);
+            .HasMaxLength(500)
+            .Metadata.SetValueComparer(stringListComparer);
 
         builder.Property(v => v.EngineerNotes)
             .HasMaxLength(1000);
@@ -83,7 +89,7 @@ public class VisitConfiguration : IEntityTypeConfiguration<Visit>
 
         // Relationships
         builder.HasMany(v => v.Photos)
-            .WithOne()
+            .WithOne(p => p.Visit)
             .HasForeignKey(p => p.VisitId)
             .OnDelete(DeleteBehavior.Cascade);
 

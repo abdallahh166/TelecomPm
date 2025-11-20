@@ -29,6 +29,8 @@ namespace TelecomPm.Infrastructure.Persistence.Configurations
                 sector.ToJson();
                 sector.Property(s => s.AntennaType)
                     .HasMaxLength(100);
+                sector.Property(s => s.HeightAboveBase)
+                    .HasPrecision(18, 2);
             });
 
             builder.HasIndex(r => r.SiteId);
