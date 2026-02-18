@@ -35,3 +35,9 @@
 - Epic 2 (story 2.1)
 - Epic 4 (story 4.1)
 - Epic 6 (story 6.1)
+
+
+## Phase 2 Handoff
+- Architecture blueprint: `docs/phase-2/01-architecture-blueprint.md`
+- Implementation plan: `docs/phase-2/02-implementation-plan.md`
+- Sprint 1 contract: `docs/phase-2/03-sprint-1-delivery-contract.md`
