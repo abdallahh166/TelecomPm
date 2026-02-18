@@ -25,7 +25,6 @@ public class MappingProfile : Profile
         CreateUserMappings();
         CreateOfficeMappings();
         CreateWorkOrderMappings();
-        CreateEscalationMappings();
     }
 
     private void CreateVisitMappings()
@@ -109,10 +108,5 @@ public class MappingProfile : Profile
     private void CreateWorkOrderMappings()
     {
         CreateMap<WorkOrder, TelecomPM.Application.DTOs.WorkOrders.WorkOrderDto>();
-    }
-
-    private void CreateEscalationMappings()
-    {
-        CreateMap<Escalation, EscalationDto>();
     }
 }

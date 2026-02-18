@@ -106,31 +106,6 @@ builder.Services.AddAuthorization(options =>
             UserRole.Manager.ToString(),
             UserRole.Supervisor.ToString(),
             UserRole.PMEngineer.ToString()));
-
-    options.AddPolicy("CanManageEscalations", policy =>
-        policy.RequireRole(
-            UserRole.Admin.ToString(),
-            UserRole.Manager.ToString(),
-            UserRole.Supervisor.ToString()));
-
-    options.AddPolicy("CanViewEscalations", policy =>
-        policy.RequireRole(
-            UserRole.Admin.ToString(),
-            UserRole.Manager.ToString(),
-            UserRole.Supervisor.ToString(),
-            UserRole.PMEngineer.ToString()));
-
-    options.AddPolicy("CanViewKpis", policy =>
-        policy.RequireRole(
-            UserRole.Admin.ToString(),
-            UserRole.Manager.ToString(),
-            UserRole.Supervisor.ToString()));
-
-    options.AddPolicy("CanReviewVisits", policy =>
-        policy.RequireRole(
-            UserRole.Admin.ToString(),
-            UserRole.Manager.ToString(),
-            UserRole.Supervisor.ToString()));
 });
 
 builder.Services.AddEndpointsApiExplorer();

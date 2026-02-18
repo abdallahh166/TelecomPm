@@ -1,11 +1,14 @@
-namespace TelecomPM.Application.Commands.WorkOrders.CreateWorkOrder;
-
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
 using TelecomPM.Application.Common;
 using TelecomPM.Application.DTOs.WorkOrders;
 using TelecomPM.Domain.Entities.WorkOrders;
 using TelecomPM.Domain.Interfaces.Repositories;
+
+namespace TelecomPM.Application.Commands.WorkOrders.CreateWorkOrder;
 
 public class CreateWorkOrderCommandHandler : IRequestHandler<CreateWorkOrderCommand, Result<WorkOrderDto>>
 {
@@ -25,14 +28,12 @@ public class CreateWorkOrderCommandHandler : IRequestHandler<CreateWorkOrderComm
 
     public async Task<Result<WorkOrderDto>> Handle(CreateWorkOrderCommand request, CancellationToken cancellationToken)
     {
-        var normalizedWoNumber = request.WoNumber.Trim();
-
-        var existing = await _workOrderRepository.GetByWoNumberAsync(normalizedWoNumber, cancellationToken);
+        var existing = await _workOrderRepository.GetByWoNumberAsync(request.WoNumber, cancellationToken);
         if (existing != null)
-            return Result.Failure<WorkOrderDto>($"Work order with number {normalizedWoNumber} already exists");
+            return Result.Failure<WorkOrderDto>($"Work order with number {request.WoNumber} already exists");
 
         var workOrder = WorkOrder.Create(
-            normalizedWoNumber,
+            request.WoNumber,
             request.SiteCode,
             request.OfficeCode,
             request.SlaClass,

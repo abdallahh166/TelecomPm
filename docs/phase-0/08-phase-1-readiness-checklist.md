@@ -10,7 +10,7 @@
 - [x] Canonical keys approved (`OfficeCode`,`SiteCode`,`VisitId`,`CapturedAt`)
 - [x] Data dictionary v1 approved
 - [x] Enum/value catalogs approved
-- [x] Excel placeholder sheets removed/archived
+- [ ] Excel placeholder sheets removed/archived
 
 ## C) Workflow Rules
 - [x] CM approval chain approved
@@ -38,6 +38,3 @@
 - [x] Steering committee sign-off completed
 - [x] Phase 1 backlog approved
 - [x] Phase 1 kickoff date confirmed (**25/03/2026**)
-
-
-> Note: Empty placeholder sheets (e.g., Sheet1/Sheet2) were archived as part of Sprint 1 closure.

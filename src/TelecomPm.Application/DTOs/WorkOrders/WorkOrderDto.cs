@@ -1,6 +1,7 @@
-namespace TelecomPM.Application.DTOs.WorkOrders;
-
+using System;
 using TelecomPM.Domain.Enums;
+
+namespace TelecomPM.Application.DTOs.WorkOrders;
 
 public class WorkOrderDto
 {
@@ -14,7 +15,6 @@ public class WorkOrderDto
     public Guid? AssignedEngineerId { get; set; }
     public string? AssignedEngineerName { get; set; }
     public DateTime? AssignedAtUtc { get; set; }
-    public string? AssignedBy { get; set; }
     public DateTime ResponseDeadlineUtc { get; set; }
     public DateTime ResolutionDeadlineUtc { get; set; }
 }

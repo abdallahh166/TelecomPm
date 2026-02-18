@@ -1,7 +1,6 @@
 using TelecomPM.Domain.Common;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Exceptions;
-using TelecomPM.Domain.Events.WorkOrderEvents;
 
 namespace TelecomPM.Domain.Entities.WorkOrders;
 
@@ -31,11 +30,11 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         SlaClass slaClass,
         string issueDescription) : base(Guid.NewGuid())
     {
-        WoNumber = woNumber.Trim();
-        SiteCode = siteCode.Trim().ToUpperInvariant();
-        OfficeCode = officeCode.Trim().ToUpperInvariant();
+        WoNumber = woNumber;
+        SiteCode = siteCode;
+        OfficeCode = officeCode;
         SlaClass = slaClass;
-        IssueDescription = issueDescription.Trim();
+        IssueDescription = issueDescription;
         Status = WorkOrderStatus.Created;
 
         var now = DateTime.UtcNow;
@@ -62,17 +61,7 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         if (string.IsNullOrWhiteSpace(issueDescription))
             throw new DomainException("Issue description is required");
 
-        var workOrder = new WorkOrder(woNumber, siteCode, officeCode, slaClass, issueDescription);
-        workOrder.AddDomainEvent(new WorkOrderCreatedEvent(
-            workOrder.Id,
-            workOrder.WoNumber,
-            workOrder.SiteCode,
-            workOrder.OfficeCode,
-            workOrder.SlaClass.ToString(),
-            workOrder.ResponseDeadlineUtc,
-            workOrder.ResolutionDeadlineUtc));
-
-        return workOrder;
+        return new WorkOrder(woNumber, siteCode, officeCode, slaClass, issueDescription);
     }
 
     public void Assign(Guid engineerId, string engineerName, string assignedBy)
@@ -94,14 +83,6 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         AssignedBy = assignedBy;
         AssignedAtUtc = DateTime.UtcNow;
         Status = WorkOrderStatus.Assigned;
-
-        AddDomainEvent(new WorkOrderAssignedEvent(
-            Id,
-            engineerId,
-            engineerName,
-            assignedBy,
-            AssignedAtUtc.Value,
-            Status.ToString()));
     }
 
     private static TimeSpan GetResponseSla(SlaClass slaClass)
