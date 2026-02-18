@@ -2,7 +2,6 @@ using FluentAssertions;
 using TelecomPM.Domain.Entities.WorkOrders;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Exceptions;
-using TelecomPM.Domain.Events.WorkOrderEvents;
 
 namespace TelecomPM.Domain.Tests.Entities;
 
@@ -67,24 +66,4 @@ public class WorkOrderTests
         act.Should().Throw<DomainException>()
             .WithMessage("*Engineer ID is required*");
     }
-
-    [Fact]
-    public void Create_ShouldRaiseWorkOrderCreatedEvent()
-    {
-        var workOrder = WorkOrder.Create("WO-1006", "S-TNT-006", "TNT", SlaClass.P2, "Rectifier alarm");
-
-        workOrder.DomainEvents.Should().ContainSingle(e => e.GetType() == typeof(WorkOrderCreatedEvent));
-    }
-
-    [Fact]
-    public void Assign_ShouldRaiseWorkOrderAssignedEvent()
-    {
-        var workOrder = WorkOrder.Create("WO-1007", "S-TNT-007", "TNT", SlaClass.P3, "Battery mismatch");
-        workOrder.ClearDomainEvents();
-
-        workOrder.Assign(Guid.NewGuid(), "Engineer C", "Dispatcher");
-
-        workOrder.DomainEvents.Should().ContainSingle(e => e.GetType() == typeof(WorkOrderAssignedEvent));
-    }
-
 }

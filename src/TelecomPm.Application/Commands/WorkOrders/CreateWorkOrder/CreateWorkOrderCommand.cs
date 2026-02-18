@@ -1,8 +1,9 @@
-namespace TelecomPM.Application.Commands.WorkOrders.CreateWorkOrder;
-
+using System;
 using TelecomPM.Application.Common;
 using TelecomPM.Application.DTOs.WorkOrders;
 using TelecomPM.Domain.Enums;
+
+namespace TelecomPM.Application.Commands.WorkOrders.CreateWorkOrder;
 
 public record CreateWorkOrderCommand : ICommand<WorkOrderDto>
 {

@@ -1,7 +1,8 @@
-namespace TelecomPM.Application.Commands.WorkOrders.AssignWorkOrder;
-
+using System;
 using TelecomPM.Application.Common;
 using TelecomPM.Application.DTOs.WorkOrders;
+
+namespace TelecomPM.Application.Commands.WorkOrders.AssignWorkOrder;
 
 public record AssignWorkOrderCommand : ICommand<WorkOrderDto>
 {
