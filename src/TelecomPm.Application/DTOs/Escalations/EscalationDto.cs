@@ -1,7 +1,7 @@
 namespace TelecomPM.Application.DTOs.Escalations;
 
 using TelecomPM.Domain.Enums;
-
+using System;
 public record EscalationDto
 {
     public Guid Id { get; init; }

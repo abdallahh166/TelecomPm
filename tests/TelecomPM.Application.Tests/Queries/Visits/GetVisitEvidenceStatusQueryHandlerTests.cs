@@ -4,6 +4,8 @@ using TelecomPM.Application.Queries.Visits.GetVisitEvidenceStatus;
 using TelecomPM.Domain.Entities.Visits;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Interfaces.Repositories;
+using Xunit;
+
 
 namespace TelecomPM.Application.Tests.Queries.Visits;
 

@@ -6,6 +6,8 @@ using TelecomPM.Application.DTOs.Visits;
 using TelecomPM.Domain.Entities.Visits;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Interfaces.Repositories;
+using Xunit;
+
 
 namespace TelecomPM.Application.Tests.Commands.Visits;
 
