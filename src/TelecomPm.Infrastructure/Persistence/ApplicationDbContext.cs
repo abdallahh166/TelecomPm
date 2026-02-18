@@ -8,6 +8,7 @@ using TelecomPM.Domain.Entities.Materials;
 using TelecomPM.Domain.Entities.Offices;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Users;
+using TelecomPM.Domain.Entities.Escalations;
 using TelecomPM.Domain.Entities.Visits;
 using TelecomPM.Domain.Entities.WorkOrders;
 using TelecomPM.Domain.Interfaces.Services;
@@ -78,9 +79,10 @@ public class ApplicationDbContext : DbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        var result = await base.SaveChangesAsync(cancellationToken);
         await DispatchDomainEventsAsync(cancellationToken);
 
-        return await base.SaveChangesAsync(cancellationToken);
+        return result;
     }
 
     private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)

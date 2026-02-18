@@ -38,6 +38,8 @@ public static class DependencyInjection
         services.AddScoped<ISiteAssignmentService, SiteAssignmentService>();
         services.AddScoped<IVisitDurationCalculatorService, VisitDurationCalculatorService>();
         services.AddScoped<IPhotoChecklistGeneratorService, PhotoChecklistGeneratorService>();
+        services.AddScoped<IVisitApprovalPolicyService, VisitApprovalPolicyService>();
+        services.AddScoped<IEscalationRoutingService, EscalationRoutingService>();
 
         return services;
     }

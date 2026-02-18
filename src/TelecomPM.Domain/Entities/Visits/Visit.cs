@@ -154,8 +154,8 @@ public sealed class Visit : AggregateRoot<Guid>
 
     public void Submit()
     {
-        if (Status != VisitStatus.Completed)
-            throw new DomainException("Visit must be completed before submission");
+        if (Status != VisitStatus.Completed && Status != VisitStatus.NeedsCorrection)
+            throw new DomainException("Visit must be completed or in correction state before submission");
 
         if (!IsReadingsComplete || !IsPhotosComplete || !IsChecklistComplete)
             throw new DomainException("All required items must be completed before submission");
@@ -324,6 +324,7 @@ public sealed class Visit : AggregateRoot<Guid>
     public void AddChecklistItem(VisitChecklist item)
     {
         Checklists.Add(item);
+        CalculateCompletionPercentage();
     }
 
     public void UpdateChecklistItem(Guid itemId, CheckStatus status, string? notes = null)
@@ -415,7 +416,6 @@ public sealed class Visit : AggregateRoot<Guid>
 
     private void CalculateCompletionPercentage()
     {
-        var totalWeight = 100;
         var achievedWeight = 0;
 
         // Photos: 40%

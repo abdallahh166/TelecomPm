@@ -2,6 +2,7 @@ namespace TelecomPM.Infrastructure.Persistence.SeedData;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TelecomPM.Infrastructure.Persistence;
@@ -20,10 +21,23 @@ public static class DatabaseSeedExtensions
             
             // Apply migrations
             await context.Database.MigrateAsync();
-            
+
             // Seed data
             var seeder = new DatabaseSeeder(context, logger);
             await seeder.SeedAsync();
+        }
+        catch (PlatformNotSupportedException ex)
+        {
+            var logger = services.GetRequiredService<ILogger<DatabaseSeeder>>();
+            logger.LogWarning(ex,
+                "Database seeding skipped: platform does not support configured provider/connection. " +
+                "If using SQL Server LocalDB, switch DefaultConnection to a server-based SQL Server instance.");
+        }
+        catch (SqlException ex)
+        {
+            var logger = services.GetRequiredService<ILogger<DatabaseSeeder>>();
+            logger.LogWarning(ex,
+                "Database seeding skipped: unable to connect to SQL Server using DefaultConnection.");
         }
         catch (Exception ex)
         {

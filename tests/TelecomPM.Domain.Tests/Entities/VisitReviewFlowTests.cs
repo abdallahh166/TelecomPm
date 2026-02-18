@@ -59,6 +59,18 @@ public class VisitReviewFlowTests
         v.Status.Should().Be(VisitStatus.Rejected);
         v.ApprovalHistory.Should().NotBeEmpty();
     }
-}
 
+    [Fact]
+    public void Submit_FromNeedsCorrection_ShouldAllowReworkLoop()
+    {
+        var v = PrepareCompletedVisit();
+        v.Submit();
+        v.StartReview();
+        v.RequestCorrection(Guid.NewGuid(), "Reviewer", "fix checklist details");
+
+        v.Submit();
+
+        v.Status.Should().Be(VisitStatus.Submitted);
+    }
+}
 

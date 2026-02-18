@@ -8,6 +8,7 @@ using TelecomPM.Application.Common;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.Interfaces.Repositories;
+using TelecomPM.Application.Services;
 
 public class ApproveVisitCommandHandler : IRequestHandler<ApproveVisitCommand, Result>
 {
@@ -15,17 +16,20 @@ public class ApproveVisitCommandHandler : IRequestHandler<ApproveVisitCommand, R
     private readonly IUserRepository _userRepository;
     private readonly ISiteRepository _siteRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IVisitApprovalPolicyService _approvalPolicyService;
 
     public ApproveVisitCommandHandler(
         IVisitRepository visitRepository,
         IUserRepository userRepository,
         ISiteRepository siteRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IVisitApprovalPolicyService approvalPolicyService)
     {
         _visitRepository = visitRepository;
         _userRepository = userRepository;
         _siteRepository = siteRepository;
         _unitOfWork = unitOfWork;
+        _approvalPolicyService = approvalPolicyService;
     }
 
     public async Task<Result> Handle(ApproveVisitCommand request, CancellationToken cancellationToken)
@@ -38,8 +42,9 @@ public class ApproveVisitCommandHandler : IRequestHandler<ApproveVisitCommand, R
         if (reviewer == null)
             return Result.Failure("Reviewer not found");
 
-        if (reviewer.Role != UserRole.Manager && reviewer.Role != UserRole.Admin)
-            return Result.Failure("Only managers or admins can approve visits");
+        var policy = _approvalPolicyService.CanReviewVisit(reviewer.Role, visit.Type, ApprovalAction.Approved);
+        if (!policy.IsAllowed)
+            return Result.Failure(policy.DenialReason ?? "Reviewer is not allowed to approve this visit");
 
         try
         {

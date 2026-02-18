@@ -7,21 +7,25 @@ using TelecomPM.Application.Common;
 using TelecomPM.Domain.Enums;
 using TelecomPM.Domain.Exceptions;
 using TelecomPM.Domain.Interfaces.Repositories;
+using TelecomPM.Application.Services;
 
 public class RequestCorrectionCommandHandler : IRequestHandler<RequestCorrectionCommand, Result>
 {
     private readonly IVisitRepository _visitRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IVisitApprovalPolicyService _approvalPolicyService;
 
     public RequestCorrectionCommandHandler(
         IVisitRepository visitRepository,
         IUserRepository userRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IVisitApprovalPolicyService approvalPolicyService)
     {
         _visitRepository = visitRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _approvalPolicyService = approvalPolicyService;
     }
 
     public async Task<Result> Handle(RequestCorrectionCommand request, CancellationToken cancellationToken)
@@ -34,8 +38,9 @@ public class RequestCorrectionCommandHandler : IRequestHandler<RequestCorrection
         if (reviewer == null)
             return Result.Failure("Reviewer not found");
 
-        if (reviewer.Role != UserRole.Manager && reviewer.Role != UserRole.Admin)
-            return Result.Failure("Only managers or admins can request corrections");
+        var policy = _approvalPolicyService.CanReviewVisit(reviewer.Role, visit.Type, ApprovalAction.RequestCorrection);
+        if (!policy.IsAllowed)
+            return Result.Failure(policy.DenialReason ?? "Reviewer is not allowed to request corrections on this visit");
 
         try
         {
