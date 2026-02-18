@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TelecomPM.Application\TelecomPM.Application.csproj" />
+    <ProjectReference Include="..\TelecomPm.Application\TelecomPm.Application.csproj" />
     <ProjectReference Include="..\TelecomPM.Domain\TelecomPM.Domain.csproj" />
   </ItemGroup>
 </Project>

@@ -16,7 +16,7 @@ public class VisitServicesTests
         var site = (Site)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Site));
         typeof(Site).GetProperty("EstimatedVisitDurationMinutes")!.SetValue(site, 125);
 
-        var svc = new VisitDurationCalculatorService();
+        var svc = new TelecomPM.Infrastructure.Services.VisitDurationCalculatorService();
         svc.CalculateEstimatedDuration(site).Should().Be(TimeSpan.FromMinutes(125));
     }
 
@@ -26,7 +26,7 @@ public class VisitServicesTests
         var visit = Visit.Create("V1", Guid.NewGuid(), "TNT001", "Site1", Guid.NewGuid(), "Eng", DateTime.Today, VisitType.PreventiveMaintenance);
         var site = (Site)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Site));
 
-        var validation = new VisitValidationService().ValidateVisitCompletion(visit, site);
+        var validation = new TelecomPM.Infrastructure.Services.VisitValidationService().ValidateVisitCompletion(visit, site);
         validation.Errors.Should().NotBeEmpty();
     }
 
