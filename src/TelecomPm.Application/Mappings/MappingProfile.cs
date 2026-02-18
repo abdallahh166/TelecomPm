@@ -11,6 +11,7 @@ using TelecomPM.Domain.Entities.Offices;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Users;
 using TelecomPM.Domain.Entities.Visits;
+using TelecomPM.Domain.Entities.WorkOrders;
 
 public class MappingProfile : Profile
 {
@@ -21,6 +22,7 @@ public class MappingProfile : Profile
         CreateMaterialMappings();
         CreateUserMappings();
         CreateOfficeMappings();
+        CreateWorkOrderMappings();
     }
 
     private void CreateVisitMappings()
@@ -124,5 +126,10 @@ public class MappingProfile : Profile
         // Office -> OfficeDto
         CreateMap<Office, OfficeDto>()
             .ForMember(d => d.City, opt => opt.MapFrom(s => s.Address.City));
+    }
+
+    private void CreateWorkOrderMappings()
+    {
+        CreateMap<WorkOrder, TelecomPM.Application.DTOs.WorkOrders.WorkOrderDto>();
     }
 }
