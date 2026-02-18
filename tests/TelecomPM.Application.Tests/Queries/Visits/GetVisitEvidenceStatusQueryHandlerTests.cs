@@ -26,8 +26,9 @@ public class GetVisitEvidenceStatusQueryHandlerTests
 
         for (var i = 0; i < 30; i++)
         {
-            visit.AddPhoto(VisitPhoto.Create(visit.Id, PhotoType.Before, PhotoCategory.Panorama, string.Empty, $"b-{i}.jpg", $"/photos/b-{i}.jpg"));
-            visit.AddPhoto(VisitPhoto.Create(visit.Id, PhotoType.After, PhotoCategory.Panorama, string.Empty, $"a-{i}.jpg", $"/photos/a-{i}.jpg"));
+           //s PhotoCategory.Panorama
+            visit.AddPhoto(VisitPhoto.Create(visit.Id, PhotoType.Before, PhotoCategory.Other, string.Empty, $"b-{i}.jpg", $"/photos/b-{i}.jpg"));
+            visit.AddPhoto(VisitPhoto.Create(visit.Id, PhotoType.After,  PhotoCategory.Other, string.Empty, $"a-{i}.jpg", $"/photos/a-{i}.jpg"));
         }
 
         for (var i = 0; i < 15; i++)
