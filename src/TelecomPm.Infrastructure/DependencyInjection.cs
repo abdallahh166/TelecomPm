@@ -39,7 +39,6 @@ public static class DependencyInjection
 
         // Email Service
         services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<EmailService>(); 
 
         // Repositories
         services.AddScoped<IVisitRepository, VisitRepository>();
@@ -57,7 +56,6 @@ public static class DependencyInjection
         services.AddScoped<IDateTimeService, DateTimeService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IFileStorageService, BlobStorageService>();
-        services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IExcelExportService, ExcelExportService>();
         services.AddScoped<IReportGenerationService, ReportGenerationService>();

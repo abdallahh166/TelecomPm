@@ -82,9 +82,10 @@ public class ApplicationDbContext : DbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        var result = await base.SaveChangesAsync(cancellationToken);
         await DispatchDomainEventsAsync(cancellationToken);
 
-        return await base.SaveChangesAsync(cancellationToken);
+        return result;
     }
 
     private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)

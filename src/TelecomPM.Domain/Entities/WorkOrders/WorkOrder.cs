@@ -31,11 +31,11 @@ public sealed class WorkOrder : AggregateRoot<Guid>
         SlaClass slaClass,
         string issueDescription) : base(Guid.NewGuid())
     {
-        WoNumber = woNumber;
-        SiteCode = siteCode;
-        OfficeCode = officeCode;
+        WoNumber = woNumber.Trim();
+        SiteCode = siteCode.Trim().ToUpperInvariant();
+        OfficeCode = officeCode.Trim().ToUpperInvariant();
         SlaClass = slaClass;
-        IssueDescription = issueDescription;
+        IssueDescription = issueDescription.Trim();
         Status = WorkOrderStatus.Created;
 
         var now = DateTime.UtcNow;

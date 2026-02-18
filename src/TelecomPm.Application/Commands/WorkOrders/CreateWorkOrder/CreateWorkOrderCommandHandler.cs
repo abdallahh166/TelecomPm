@@ -25,12 +25,14 @@ public class CreateWorkOrderCommandHandler : IRequestHandler<CreateWorkOrderComm
 
     public async Task<Result<WorkOrderDto>> Handle(CreateWorkOrderCommand request, CancellationToken cancellationToken)
     {
-        var existing = await _workOrderRepository.GetByWoNumberAsync(request.WoNumber, cancellationToken);
+        var normalizedWoNumber = request.WoNumber.Trim();
+
+        var existing = await _workOrderRepository.GetByWoNumberAsync(normalizedWoNumber, cancellationToken);
         if (existing != null)
-            return Result.Failure<WorkOrderDto>($"Work order with number {request.WoNumber} already exists");
+            return Result.Failure<WorkOrderDto>($"Work order with number {normalizedWoNumber} already exists");
 
         var workOrder = WorkOrder.Create(
-            request.WoNumber,
+            normalizedWoNumber,
             request.SiteCode,
             request.OfficeCode,
             request.SlaClass,

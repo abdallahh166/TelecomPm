@@ -19,8 +19,26 @@ public class WorkOrderTests
             issueDescription: "Power alarm and partial degradation");
 
         workOrder.Status.Should().Be(WorkOrderStatus.Created);
+        workOrder.SiteCode.Should().Be("S-TNT-001");
+        workOrder.OfficeCode.Should().Be("TNT");
         workOrder.ResponseDeadlineUtc.Should().BeAfter(workOrder.CreatedAt);
         workOrder.ResolutionDeadlineUtc.Should().BeAfter(workOrder.ResponseDeadlineUtc);
+    }
+
+    [Fact]
+    public void Create_ShouldNormalizeCodesAndDescription()
+    {
+        var workOrder = WorkOrder.Create(
+            woNumber: "  WO-1008  ",
+            siteCode: " s-tnt-008 ",
+            officeCode: " tnt ",
+            slaClass: SlaClass.P4,
+            issueDescription: "  Low priority issue  ");
+
+        workOrder.WoNumber.Should().Be("WO-1008");
+        workOrder.SiteCode.Should().Be("S-TNT-008");
+        workOrder.OfficeCode.Should().Be("TNT");
+        workOrder.IssueDescription.Should().Be("Low priority issue");
     }
 
     [Fact]

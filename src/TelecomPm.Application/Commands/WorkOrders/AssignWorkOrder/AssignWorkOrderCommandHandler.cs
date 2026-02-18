@@ -32,6 +32,7 @@ public class AssignWorkOrderCommandHandler : IRequestHandler<AssignWorkOrderComm
         try
         {
             workOrder.Assign(request.EngineerId, request.EngineerName, request.AssignedBy);
+            await _workOrderRepository.UpdateAsync(workOrder, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success(_mapper.Map<WorkOrderDto>(workOrder));
         }
