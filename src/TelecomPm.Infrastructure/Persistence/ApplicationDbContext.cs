@@ -9,6 +9,7 @@ using TelecomPM.Domain.Entities.Offices;
 using TelecomPM.Domain.Entities.Sites;
 using TelecomPM.Domain.Entities.Users;
 using TelecomPM.Domain.Entities.Visits;
+using TelecomPM.Domain.Entities.WorkOrders;
 using TelecomPM.Domain.Interfaces.Services;
 
 public class ApplicationDbContext : DbContext
@@ -48,6 +49,9 @@ public class ApplicationDbContext : DbContext
     // Material
     public DbSet<Material> Materials => Set<Material>();
     public DbSet<MaterialTransaction> MaterialTransactions => Set<MaterialTransaction>();
+
+    // Work Orders
+    public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
