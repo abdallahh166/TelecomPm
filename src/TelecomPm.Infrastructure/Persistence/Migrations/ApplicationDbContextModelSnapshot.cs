@@ -831,6 +831,100 @@ namespace TelecomPm.Infrastructure.Persistence.Migrations
                     b.ToTable("SiteTransmissions", (string)null);
                 });
 
+            modelBuilder.Entity("TelecomPM.Domain.Entities.WorkOrders.WorkOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AssignedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AssignedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid?>("AssignedEngineerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssignedEngineerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IssueDescription")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("OfficeCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("ResolutionDeadlineUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ResponseDeadlineUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SiteCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SlaClass")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WoNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("OfficeCode");
+
+                    b.HasIndex("SiteCode");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("WoNumber")
+                        .IsUnique();
+
+                    b.ToTable("WorkOrders", (string)null);
+                });
+
             modelBuilder.Entity("TelecomPM.Domain.Entities.Users.User", b =>
                 {
                     b.Property<Guid>("Id")

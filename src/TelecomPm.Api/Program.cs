@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using TelecomPM.Api.Filters;
 using TelecomPM.Api.Middleware;
+using TelecomPM.Domain.Enums;
 using TelecomPM.Application;
 using TelecomPM.Infrastructure;
 using TelecomPM.Infrastructure.Persistence;
@@ -40,9 +41,19 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
+        if (allowedOrigins.Length == 0)
+        {
+            policy.WithOrigins("https://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+            return;
+        }
+
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -76,7 +87,46 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanManageWorkOrders", policy =>
+        policy.RequireRole(
+            UserRole.Admin.ToString(),
+            UserRole.Manager.ToString(),
+            UserRole.Supervisor.ToString()));
+
+    options.AddPolicy("CanViewWorkOrders", policy =>
+        policy.RequireRole(
+            UserRole.Admin.ToString(),
+            UserRole.Manager.ToString(),
+            UserRole.Supervisor.ToString(),
+            UserRole.PMEngineer.ToString()));
+
+    options.AddPolicy("CanManageEscalations", policy =>
+        policy.RequireRole(
+            UserRole.Admin.ToString(),
+            UserRole.Manager.ToString(),
+            UserRole.Supervisor.ToString()));
+
+    options.AddPolicy("CanViewEscalations", policy =>
+        policy.RequireRole(
+            UserRole.Admin.ToString(),
+            UserRole.Manager.ToString(),
+            UserRole.Supervisor.ToString(),
+            UserRole.PMEngineer.ToString()));
+
+    options.AddPolicy("CanViewKpis", policy =>
+        policy.RequireRole(
+            UserRole.Admin.ToString(),
+            UserRole.Manager.ToString(),
+            UserRole.Supervisor.ToString()));
+
+    options.AddPolicy("CanReviewVisits", policy =>
+        policy.RequireRole(
+            UserRole.Admin.ToString(),
+            UserRole.Manager.ToString(),
+            UserRole.Supervisor.ToString()));
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -137,7 +187,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -145,7 +195,15 @@ app.MapHealthChecks("/health");
 
 if (app.Environment.IsDevelopment())
 {
-    await app.SeedDatabaseAsync();
+    try
+    {
+        await app.SeedDatabaseAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex,
+            "Startup continued without database seeding. Set a supported SQL Server connection string in DefaultConnection.");
+    }
 }
 
 app.Run();

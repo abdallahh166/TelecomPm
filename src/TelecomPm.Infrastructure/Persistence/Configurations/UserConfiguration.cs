@@ -36,8 +36,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasConversion<string>()
             .HasMaxLength(50);
 
-        var stringListComparer = ValueComparerFactory.CreateStringListComparer();
-        var guidListComparer = ValueComparerFactory.CreateGuidListComparer();
+        var stringListComparer = ValueComparerFactory.CreateReadOnlyStringCollectionComparer();
+        var guidListComparer = ValueComparerFactory.CreateReadOnlyGuidCollectionComparer();
 
         builder.Property(u => u.Specializations)
             .HasConversion(

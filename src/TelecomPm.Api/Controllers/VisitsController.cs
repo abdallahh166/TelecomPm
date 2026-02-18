@@ -4,8 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelecomPm.Api.Contracts.Visits;
+using TelecomPM.Application.Commands.Visits.AddChecklistItem;
+using TelecomPM.Application.Commands.Visits.AddIssue;
 using TelecomPM.Application.Commands.Visits.AddPhoto;
 using TelecomPM.Application.Commands.Visits.AddReading;
 using TelecomPM.Application.Commands.Visits.ApproveVisit;
@@ -13,15 +16,19 @@ using TelecomPM.Application.Commands.Visits.CompleteVisit;
 using TelecomPM.Application.Commands.Visits.CreateVisit;
 using TelecomPM.Application.Commands.Visits.RejectVisit;
 using TelecomPM.Application.Commands.Visits.RequestCorrection;
+using TelecomPM.Application.Commands.Visits.ResolveIssue;
 using TelecomPM.Application.Commands.Visits.StartVisit;
 using TelecomPM.Application.Commands.Visits.SubmitVisit;
+using TelecomPM.Application.Commands.Visits.UpdateChecklistItem;
 using TelecomPM.Application.Queries.Visits.GetEngineerVisits;
+using TelecomPM.Application.Queries.Visits.GetVisitEvidenceStatus;
 using TelecomPM.Application.Queries.Visits.GetPendingReviews;
 using TelecomPM.Application.Queries.Visits.GetScheduledVisits;
 using TelecomPM.Application.Queries.Visits.GetVisitById;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public sealed class VisitsController : ApiControllerBase
 {
     [HttpGet("{visitId:guid}")]
@@ -110,6 +117,16 @@ public sealed class VisitsController : ApiControllerBase
         return HandleResult(result);
     }
 
+    [HttpGet("{visitId:guid}/evidence-status")]
+    public async Task<IActionResult> GetEvidenceStatus(Guid visitId, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(
+            new GetVisitEvidenceStatusQuery { VisitId = visitId },
+            cancellationToken);
+
+        return HandleResult(result);
+    }
+
     [HttpPost("{visitId:guid}/start")]
     public async Task<IActionResult> Start(
         Guid visitId,
@@ -154,6 +171,7 @@ public sealed class VisitsController : ApiControllerBase
     }
 
     [HttpPost("{visitId:guid}/approve")]
+    [Authorize(Policy = "CanReviewVisits")]
     public async Task<IActionResult> Approve(
         Guid visitId,
         [FromBody] ApproveVisitRequest request,
@@ -171,6 +189,7 @@ public sealed class VisitsController : ApiControllerBase
     }
 
     [HttpPost("{visitId:guid}/reject")]
+    [Authorize(Policy = "CanReviewVisits")]
     public async Task<IActionResult> Reject(
         Guid visitId,
         [FromBody] RejectVisitRequest request,
@@ -188,6 +207,7 @@ public sealed class VisitsController : ApiControllerBase
     }
 
     [HttpPost("{visitId:guid}/request-correction")]
+    [Authorize(Policy = "CanReviewVisits")]
     public async Task<IActionResult> RequestCorrection(
         Guid visitId,
         [FromBody] RequestCorrectionRequest request,
@@ -198,6 +218,82 @@ public sealed class VisitsController : ApiControllerBase
             VisitId = visitId,
             ReviewerId = request.ReviewerId,
             CorrectionNotes = request.CorrectionNotes
+        };
+
+        var result = await Mediator.Send(command, cancellationToken);
+        return HandleResult(result);
+    }
+
+    [HttpPost("{visitId:guid}/checklist-items")]
+    public async Task<IActionResult> AddChecklistItem(
+        Guid visitId,
+        [FromBody] AddChecklistItemRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddChecklistItemCommand
+        {
+            VisitId = visitId,
+            Category = request.Category,
+            ItemName = request.ItemName,
+            Description = request.Description,
+            IsMandatory = request.IsMandatory
+        };
+
+        var result = await Mediator.Send(command, cancellationToken);
+        return HandleResult(result);
+    }
+
+    [HttpPatch("{visitId:guid}/checklist-items/{checklistItemId:guid}")]
+    public async Task<IActionResult> UpdateChecklistItem(
+        Guid visitId,
+        Guid checklistItemId,
+        [FromBody] UpdateChecklistItemRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateChecklistItemCommand
+        {
+            VisitId = visitId,
+            ChecklistItemId = checklistItemId,
+            Status = request.Status,
+            Notes = request.Notes
+        };
+
+        var result = await Mediator.Send(command, cancellationToken);
+        return HandleResult(result);
+    }
+
+    [HttpPost("{visitId:guid}/issues")]
+    public async Task<IActionResult> AddIssue(
+        Guid visitId,
+        [FromBody] AddVisitIssueRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddIssueCommand
+        {
+            VisitId = visitId,
+            Category = request.Category,
+            Severity = request.Severity,
+            Title = request.Title,
+            Description = request.Description,
+            PhotoIds = request.PhotoIds
+        };
+
+        var result = await Mediator.Send(command, cancellationToken);
+        return HandleResult(result);
+    }
+
+    [HttpPost("{visitId:guid}/issues/{issueId:guid}/resolve")]
+    public async Task<IActionResult> ResolveIssue(
+        Guid visitId,
+        Guid issueId,
+        [FromBody] ResolveVisitIssueRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new ResolveIssueCommand
+        {
+            VisitId = visitId,
+            IssueId = issueId,
+            Resolution = request.Resolution
         };
 
         var result = await Mediator.Send(command, cancellationToken);
@@ -235,6 +331,11 @@ public sealed class VisitsController : ApiControllerBase
         [FromForm] AddVisitPhotoRequest request,
         CancellationToken cancellationToken)
     {
+        if (request.File.Length <= 0)
+        {
+            return BadRequest("Photo file is required");
+        }
+
         await using var stream = request.File.OpenReadStream();
 
         var command = new AddPhotoCommand
@@ -254,4 +355,3 @@ public sealed class VisitsController : ApiControllerBase
         return HandleResult(result);
     }
 }
-
