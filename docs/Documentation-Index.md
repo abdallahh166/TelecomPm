@@ -13,6 +13,7 @@ These documents are intended to match current code behavior:
 - `docs/Frontend-Reporting-API-Contract-and-Git-Plan.md`
 - `docs/Backend-Auto-Discovery-Report.md`
 - `docs/Business-Confirmation-Checklist.md`
+- `docs/GitHub-Development-and-Production-Runbook.md`
 - `docs/TowerOps-Brand-Profile.md`
 - `docs/phase-0/00-phase-overview.md`
 - `docs/phase-1/00-phase-overview.md`
