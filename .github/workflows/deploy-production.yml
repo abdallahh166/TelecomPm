@@ -1,0 +1,63 @@
+name: Deploy Production
+
+on:
+  workflow_run:
+    workflows: ["Publish Artifact"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Publish Artifact workflow run id"
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Download published artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: towerops-api-publish
+          path: deploy
+          run-id: ${{ github.event_name == 'workflow_dispatch' && inputs.run_id || github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy to MonsterASP (production)
+        env:
+          SFTP_HOST: ${{ secrets.PROD_SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.PROD_SFTP_PORT }}
+          SFTP_USER: ${{ secrets.PROD_SFTP_USER }}
+          SFTP_PASS: ${{ secrets.PROD_SFTP_PASS }}
+          SFTP_REMOTE_PATH: ${{ secrets.PROD_SFTP_REMOTE_PATH }}
+        run: |
+          test -n "$SFTP_HOST" || (echo "Missing PROD_SFTP_HOST" && exit 1)
+          test -n "$SFTP_PORT" || (echo "Missing PROD_SFTP_PORT" && exit 1)
+          test -n "$SFTP_USER" || (echo "Missing PROD_SFTP_USER" && exit 1)
+          test -n "$SFTP_PASS" || (echo "Missing PROD_SFTP_PASS" && exit 1)
+          test -n "$SFTP_REMOTE_PATH" || (echo "Missing PROD_SFTP_REMOTE_PATH" && exit 1)
+
+          lftp -e "
+          set sftp:auto-confirm yes;
+          open -u \"$SFTP_USER\",\"$SFTP_PASS\" -p \"$SFTP_PORT\" sftp://$SFTP_HOST;
+          mirror -R --verbose deploy/ \"$SFTP_REMOTE_PATH\";
+          bye
+          "
