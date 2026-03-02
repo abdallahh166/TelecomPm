@@ -48,12 +48,34 @@ jobs:
           SFTP_USER: ${{ secrets.STAGING_SFTP_USER }}
           SFTP_PASS: ${{ secrets.STAGING_SFTP_PASS }}
           SFTP_REMOTE_PATH: ${{ secrets.STAGING_SFTP_REMOTE_PATH }}
+          STAGING_DB_CONNECTION_STRING: ${{ secrets.STAGING_DB_CONNECTION_STRING }}
+          STAGING_JWT_SECRET: ${{ secrets.STAGING_JWT_SECRET }}
         run: |
           test -n "$SFTP_HOST" || (echo "Missing STAGING_SFTP_HOST" && exit 1)
           test -n "$SFTP_PORT" || (echo "Missing STAGING_SFTP_PORT" && exit 1)
           test -n "$SFTP_USER" || (echo "Missing STAGING_SFTP_USER" && exit 1)
           test -n "$SFTP_PASS" || (echo "Missing STAGING_SFTP_PASS" && exit 1)
           test -n "$SFTP_REMOTE_PATH" || (echo "Missing STAGING_SFTP_REMOTE_PATH" && exit 1)
+          test -n "$STAGING_DB_CONNECTION_STRING" || (echo "Missing STAGING_DB_CONNECTION_STRING" && exit 1)
+          test -n "$STAGING_JWT_SECRET" || (echo "Missing STAGING_JWT_SECRET" && exit 1)
+
+          cat > deploy/web.config <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+              </handlers>
+              <aspNetCore processPath="dotnet" arguments=".\\TowerOps.Api.dll" stdoutLogEnabled="false" stdoutLogFile=".\\logs\\stdout" hostingModel="inprocess">
+                <environmentVariables>
+                  <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" />
+                  <environmentVariable name="JWT_SECRET" value="$STAGING_JWT_SECRET" />
+                  <environmentVariable name="ConnectionStrings__DefaultConnection" value="$STAGING_DB_CONNECTION_STRING" />
+                </environmentVariables>
+              </aspNetCore>
+            </system.webServer>
+          </configuration>
+          EOF
 
           echo "Checking DNS and TCP reachability to $SFTP_HOST:$SFTP_PORT"
           getent hosts "$SFTP_HOST"
