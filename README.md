@@ -198,6 +198,7 @@ Key docs:
 - Domain model and rules: `docs/Domain-Doc.md`
 - Operational workflow: `docs/Operational-Workflow.md`
 - Brand profile: `docs/TowerOps-Brand-Profile.md`
+- GitHub development/deploy runbook: `docs/GitHub-Development-and-Production-Runbook.md`
 - Production remediation: `docs/phase-2/12-production-remediation-plan.md`
 - Observability runbook: `docs/phase-2/13-observability-runbook.md`
 - Staging verification: `docs/phase-2/15-staging-smoke-and-rollback-verification.md`
