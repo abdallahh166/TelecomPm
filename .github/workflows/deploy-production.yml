@@ -48,16 +48,51 @@ jobs:
           SFTP_USER: ${{ secrets.PROD_SFTP_USER }}
           SFTP_PASS: ${{ secrets.PROD_SFTP_PASS }}
           SFTP_REMOTE_PATH: ${{ secrets.PROD_SFTP_REMOTE_PATH }}
+          PROD_DB_CONNECTION_STRING: ${{ secrets.PROD_DB_CONNECTION_STRING }}
+          PROD_JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
         run: |
           test -n "$SFTP_HOST" || (echo "Missing PROD_SFTP_HOST" && exit 1)
           test -n "$SFTP_PORT" || (echo "Missing PROD_SFTP_PORT" && exit 1)
           test -n "$SFTP_USER" || (echo "Missing PROD_SFTP_USER" && exit 1)
           test -n "$SFTP_PASS" || (echo "Missing PROD_SFTP_PASS" && exit 1)
           test -n "$SFTP_REMOTE_PATH" || (echo "Missing PROD_SFTP_REMOTE_PATH" && exit 1)
+          test -n "$PROD_DB_CONNECTION_STRING" || (echo "Missing PROD_DB_CONNECTION_STRING" && exit 1)
+          test -n "$PROD_JWT_SECRET" || (echo "Missing PROD_JWT_SECRET" && exit 1)
 
-          lftp -e "
+          cat > deploy/web.config <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+              </handlers>
+              <aspNetCore processPath="dotnet" arguments=".\\TowerOps.Api.dll" stdoutLogEnabled="false" stdoutLogFile=".\\logs\\stdout" hostingModel="inprocess">
+                <environmentVariables>
+                  <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
+                  <environmentVariable name="JWT_SECRET" value="$PROD_JWT_SECRET" />
+                  <environmentVariable name="ConnectionStrings__DefaultConnection" value="$PROD_DB_CONNECTION_STRING" />
+                </environmentVariables>
+              </aspNetCore>
+            </system.webServer>
+          </configuration>
+          EOF
+
+          echo "Checking DNS and TCP reachability to $SFTP_HOST:$SFTP_PORT"
+          getent hosts "$SFTP_HOST"
+          timeout 20 bash -c "cat < /dev/null > /dev/tcp/$SFTP_HOST/$SFTP_PORT"
+
+          timeout 300 lftp -d -e "
+          set cmd:fail-exit yes;
+          set net:timeout 20;
+          set net:max-retries 1;
+          set net:reconnect-interval-base 5;
+          set net:reconnect-interval-max 10;
           set sftp:auto-confirm yes;
+          set xfer:clobber true;
           open -u \"$SFTP_USER\",\"$SFTP_PASS\" -p \"$SFTP_PORT\" sftp://$SFTP_HOST;
-          mirror -R --verbose deploy/ \"$SFTP_REMOTE_PATH\";
+          pwd;
+          mkdir -p \"$SFTP_REMOTE_PATH\";
+          cls -1 \"$SFTP_REMOTE_PATH\";
+          mirror -R --verbose --only-newer deploy/ \"$SFTP_REMOTE_PATH\";
           bye
           "
