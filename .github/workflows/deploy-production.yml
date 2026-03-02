@@ -62,6 +62,13 @@ jobs:
           # Normalize/validate SFTP port to avoid malformed values (quotes/spaces/newlines).
           SFTP_PORT="$(echo "$SFTP_PORT" | tr -d '\r\n\"'"'"' ' | xargs)"
           echo "$SFTP_PORT" | grep -Eq '^[0-9]{1,5}$' || (echo "Invalid PROD_SFTP_PORT value: $SFTP_PORT" && exit 1)
+
+          # Normalize remote path for SFTP server expectations.
+          SFTP_REMOTE_PATH="$(echo "$SFTP_REMOTE_PATH" | tr -d '\r\n\"'"'"' ' | xargs)"
+          SFTP_REMOTE_PATH="${SFTP_REMOTE_PATH//\\//}"
+          [[ "$SFTP_REMOTE_PATH" == /* ]] || SFTP_REMOTE_PATH="/$SFTP_REMOTE_PATH"
+          SFTP_REMOTE_PATH="${SFTP_REMOTE_PATH%/}"
+          test -n "$SFTP_REMOTE_PATH" || SFTP_REMOTE_PATH="/"
           cat > deploy/web.config <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
@@ -94,7 +101,9 @@ jobs:
           set xfer:clobber true
           open -u $SFTP_USER,$SFTP_PASS -p $SFTP_PORT sftp://$SFTP_HOST
           pwd
+          set cmd:fail-exit no
           mkdir -p $SFTP_REMOTE_PATH
+          set cmd:fail-exit yes
           cls -1 $SFTP_REMOTE_PATH
           mirror -R --verbose --only-newer deploy/ $SFTP_REMOTE_PATH
           bye
