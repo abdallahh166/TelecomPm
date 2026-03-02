@@ -59,6 +59,9 @@ jobs:
           test -n "$PROD_DB_CONNECTION_STRING" || (echo "Missing PROD_DB_CONNECTION_STRING" && exit 1)
           test -n "$PROD_JWT_SECRET" || (echo "Missing PROD_JWT_SECRET" && exit 1)
 
+          # Normalize/validate SFTP port to avoid malformed values (quotes/spaces/newlines).
+          SFTP_PORT="$(echo "$SFTP_PORT" | tr -d '\r\n\"'"'"' ' | xargs)"
+          echo "$SFTP_PORT" | grep -Eq '^[0-9]{1,5}$' || (echo "Invalid PROD_SFTP_PORT value: $SFTP_PORT" && exit 1)
           cat > deploy/web.config <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
