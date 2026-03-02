@@ -91,21 +91,28 @@ jobs:
           getent hosts "$SFTP_HOST"
           timeout 20 bash -c "cat < /dev/null > /dev/tcp/$SFTP_HOST/$SFTP_PORT"
 
+          cat > /tmp/app_offline.htm <<EOF
+          <html><body><h1>TowerOps is updating. Please retry in a minute.</h1></body></html>
+          EOF
+
           cat > /tmp/deploy.lftp <<EOF
           set cmd:fail-exit yes
           set net:timeout 20
-          set net:max-retries 1
+          set net:max-retries 3
           set net:reconnect-interval-base 5
           set net:reconnect-interval-max 10
           set sftp:auto-confirm yes
           set xfer:clobber true
           open -u $SFTP_USER,$SFTP_PASS -p $SFTP_PORT sftp://$SFTP_HOST
           pwd
+          put -O $SFTP_REMOTE_PATH /tmp/app_offline.htm
+          sleep 5
           set cmd:fail-exit no
           mkdir -p $SFTP_REMOTE_PATH
           set cmd:fail-exit yes
           cls -1 $SFTP_REMOTE_PATH
           mirror -R --verbose --only-newer --no-perms --no-umask deploy/ $SFTP_REMOTE_PATH
+          rm $SFTP_REMOTE_PATH/app_offline.htm
           bye
           EOF
 
