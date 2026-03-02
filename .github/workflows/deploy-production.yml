@@ -55,9 +55,22 @@ jobs:
           test -n "$SFTP_PASS" || (echo "Missing PROD_SFTP_PASS" && exit 1)
           test -n "$SFTP_REMOTE_PATH" || (echo "Missing PROD_SFTP_REMOTE_PATH" && exit 1)
 
-          lftp -e "
+          echo "Checking DNS and TCP reachability to $SFTP_HOST:$SFTP_PORT"
+          getent hosts "$SFTP_HOST"
+          timeout 20 bash -c "cat < /dev/null > /dev/tcp/$SFTP_HOST/$SFTP_PORT"
+
+          timeout 300 lftp -d -e "
+          set cmd:fail-exit yes;
+          set net:timeout 20;
+          set net:max-retries 1;
+          set net:reconnect-interval-base 5;
+          set net:reconnect-interval-max 10;
           set sftp:auto-confirm yes;
+          set xfer:clobber true;
           open -u \"$SFTP_USER\",\"$SFTP_PASS\" -p \"$SFTP_PORT\" sftp://$SFTP_HOST;
-          mirror -R --verbose deploy/ \"$SFTP_REMOTE_PATH\";
+          pwd;
+          mkdir -p \"$SFTP_REMOTE_PATH\";
+          cls -1 \"$SFTP_REMOTE_PATH\";
+          mirror -R --verbose --only-newer deploy/ \"$SFTP_REMOTE_PATH\";
           bye
           "
