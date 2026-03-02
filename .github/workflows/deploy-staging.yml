@@ -62,7 +62,6 @@ jobs:
           # Normalize/validate SFTP port to avoid malformed values (quotes/spaces/newlines).
           SFTP_PORT="$(echo "$SFTP_PORT" | tr -d '\r\n\"'"'"' ' | xargs)"
           echo "$SFTP_PORT" | grep -Eq '^[0-9]{1,5}$' || (echo "Invalid STAGING_SFTP_PORT value: $SFTP_PORT" && exit 1)
-
           cat > deploy/web.config <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
