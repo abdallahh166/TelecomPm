@@ -105,7 +105,7 @@ jobs:
           mkdir -p $SFTP_REMOTE_PATH
           set cmd:fail-exit yes
           cls -1 $SFTP_REMOTE_PATH
-          mirror -R --verbose --only-newer deploy/ $SFTP_REMOTE_PATH
+          mirror -R --verbose --only-newer --no-perms --no-umask deploy/ $SFTP_REMOTE_PATH
           bye
           EOF
 
