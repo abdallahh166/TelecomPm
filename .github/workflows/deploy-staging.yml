@@ -1,0 +1,119 @@
+name: Deploy Staging
+
+on:
+  workflow_run:
+    workflows: ["Publish Artifact"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Publish Artifact workflow run id"
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'develop'
+      )
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Download published artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: towerops-api-publish
+          path: deploy
+          run-id: ${{ github.event_name == 'workflow_dispatch' && inputs.run_id || github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy to MonsterASP (staging)
+        env:
+          SFTP_HOST: ${{ secrets.STAGING_SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.STAGING_SFTP_PORT }}
+          SFTP_USER: ${{ secrets.STAGING_SFTP_USER }}
+          SFTP_PASS: ${{ secrets.STAGING_SFTP_PASS }}
+          SFTP_REMOTE_PATH: ${{ secrets.STAGING_SFTP_REMOTE_PATH }}
+          STAGING_DB_CONNECTION_STRING: ${{ secrets.STAGING_DB_CONNECTION_STRING }}
+          STAGING_JWT_SECRET: ${{ secrets.STAGING_JWT_SECRET }}
+        run: |
+          test -n "$SFTP_HOST" || (echo "Missing STAGING_SFTP_HOST" && exit 1)
+          test -n "$SFTP_PORT" || (echo "Missing STAGING_SFTP_PORT" && exit 1)
+          test -n "$SFTP_USER" || (echo "Missing STAGING_SFTP_USER" && exit 1)
+          test -n "$SFTP_PASS" || (echo "Missing STAGING_SFTP_PASS" && exit 1)
+          test -n "$SFTP_REMOTE_PATH" || (echo "Missing STAGING_SFTP_REMOTE_PATH" && exit 1)
+          test -n "$STAGING_DB_CONNECTION_STRING" || (echo "Missing STAGING_DB_CONNECTION_STRING" && exit 1)
+          test -n "$STAGING_JWT_SECRET" || (echo "Missing STAGING_JWT_SECRET" && exit 1)
+
+          # Normalize/validate SFTP port to avoid malformed values (quotes/spaces/newlines).
+          SFTP_PORT="$(echo "$SFTP_PORT" | tr -d '\r\n\"'"'"' ' | xargs)"
+          echo "$SFTP_PORT" | grep -Eq '^[0-9]{1,5}$' || (echo "Invalid STAGING_SFTP_PORT value: $SFTP_PORT" && exit 1)
+
+          # Normalize remote path for SFTP server expectations.
+          SFTP_REMOTE_PATH="$(echo "$SFTP_REMOTE_PATH" | tr -d '\r\n\"'"'"' ' | xargs)"
+          SFTP_REMOTE_PATH="${SFTP_REMOTE_PATH//\\//}"
+          [[ "$SFTP_REMOTE_PATH" == /* ]] || SFTP_REMOTE_PATH="/$SFTP_REMOTE_PATH"
+          SFTP_REMOTE_PATH="${SFTP_REMOTE_PATH%/}"
+          test -n "$SFTP_REMOTE_PATH" || SFTP_REMOTE_PATH="/"
+          cat > deploy/web.config <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+              </handlers>
+              <aspNetCore processPath="dotnet" arguments=".\\TowerOps.Api.dll" stdoutLogEnabled="false" stdoutLogFile=".\\logs\\stdout" hostingModel="inprocess">
+                <environmentVariables>
+                  <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" />
+                  <environmentVariable name="JWT_SECRET" value="$STAGING_JWT_SECRET" />
+                  <environmentVariable name="ConnectionStrings__DefaultConnection" value="$STAGING_DB_CONNECTION_STRING" />
+                </environmentVariables>
+              </aspNetCore>
+            </system.webServer>
+          </configuration>
+          EOF
+
+          echo "Checking DNS and TCP reachability to $SFTP_HOST:$SFTP_PORT"
+          getent hosts "$SFTP_HOST"
+          timeout 20 bash -c "cat < /dev/null > /dev/tcp/$SFTP_HOST/$SFTP_PORT"
+
+          cat > /tmp/app_offline.htm <<EOF
+          <html><body><h1>TowerOps is updating. Please retry in a minute.</h1></body></html>
+          EOF
+
+          cat > /tmp/deploy.lftp <<EOF
+          set cmd:fail-exit yes
+          set net:timeout 20
+          set net:max-retries 3
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-max 10
+          set sftp:auto-confirm yes
+          set xfer:clobber true
+          open -u $SFTP_USER,$SFTP_PASS -p $SFTP_PORT sftp://$SFTP_HOST
+          pwd
+          put -O $SFTP_REMOTE_PATH /tmp/app_offline.htm
+          sleep 5
+          set cmd:fail-exit no
+          mkdir -p $SFTP_REMOTE_PATH
+          set cmd:fail-exit yes
+          cls -1 $SFTP_REMOTE_PATH
+          mirror -R --verbose --only-newer --no-perms --no-umask deploy/ $SFTP_REMOTE_PATH
+          rm $SFTP_REMOTE_PATH/app_offline.htm
+          bye
+          EOF
+
+          timeout 300 lftp -d -f /tmp/deploy.lftp

@@ -1,0 +1,55 @@
+name: Publish Artifact
+
+on:
+  workflow_run:
+    workflows: [".NET CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to publish (branch/tag/SHA)"
+        required: true
+        default: "main"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        (
+          github.event.workflow_run.head_branch == 'main' ||
+          github.event.workflow_run.head_branch == 'develop' ||
+          startsWith(github.event.workflow_run.head_branch, 'release/') ||
+          startsWith(github.event.workflow_run.head_branch, 'hotfix/')
+        )
+      )
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.workflow_run.head_sha }}
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore TowerOps.sln
+
+      - name: Publish API
+        run: dotnet publish src/TowerOps.Api/TowerOps.Api.csproj -c Release -o out/publish /p:UseAppHost=false
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: towerops-api-publish
+          path: out/publish
+          retention-days: 14

@@ -15,10 +15,12 @@ using TowerOps.Domain.Entities.DailyPlans;
 using TowerOps.Domain.Entities.Materials;
 using TowerOps.Domain.Entities.Offices;
 using TowerOps.Domain.Entities.PasswordResetTokens;
+using TowerOps.Domain.Entities.RefreshTokens;
 using TowerOps.Domain.Entities.Sites;
 using TowerOps.Domain.Entities.Sync;
 using TowerOps.Domain.Entities.SystemSettings;
 using TowerOps.Domain.Entities.UnusedAssets;
+using TowerOps.Domain.Entities.UserDataExports;
 using TowerOps.Domain.Entities.Users;
 using TowerOps.Domain.Entities.Escalations;
 using TowerOps.Domain.Entities.Visits;
@@ -60,6 +62,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Office> Offices => Set<Office>();
     public DbSet<ApplicationRole> ApplicationRoles => Set<ApplicationRole>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     // Material
     public DbSet<Material> Materials => Set<Material>();
@@ -83,6 +86,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<SyncConflict> SyncConflicts => Set<SyncConflict>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<UnusedAsset> UnusedAssets => Set<UnusedAsset>();
+    public DbSet<UserDataExportRequest> UserDataExportRequests => Set<UserDataExportRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

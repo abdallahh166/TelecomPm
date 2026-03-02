@@ -39,6 +39,7 @@ Branding note:
 - `Client`
 - `PasswordResetToken`
 - `UnusedAsset`
+- `UserDataExportRequest`
 
 ## Value Objects
 - Identifiers: `SiteCode`, `VisitNumber`, `MaterialCode`
@@ -53,6 +54,8 @@ Branding note:
 - Site ownership affects responsibility scope (`Host` => `Full`, otherwise `EquipmentOnly`).
 - Equipment-only sites cannot create tower-infrastructure work orders.
 - Signature capture enforces single-capture constraints and payload validation.
+- Entities support legal-hold flags (`IsUnderLegalHold`) to block retention purge while disputes are active.
+- `UserDataExportRequest` tracks user-scoped JSON export lifecycle (`Pending/Completed/Expired/Failed`) with expiry.
 - Domain exceptions carry message keys for localization.
 
 ## Visit Type Canonical Model
@@ -91,3 +94,4 @@ dotnet test tests/TowerOps.Domain.Tests/TowerOps.Domain.Tests.csproj
 - Keep invariants inside aggregate methods.
 - Avoid bypassing domain methods from application/infrastructure code.
 - Add tests for every new transition or invariant.
+- Cross-check API/auth/security assumptions with `docs/Backend-Auto-Discovery-Report.md` before changing contracts.

@@ -8,6 +8,7 @@ This report captures documentation areas that still need follow-up to keep docs 
   - `docs/Api-Doc.md`
   - `docs/Application-Doc.md`
   - `docs/Domain-Doc.md`
+  - `docs/Backend-Auto-Discovery-Report.md`
   - phase overview docs (`docs/phase-*/00-phase-overview.md`)
 - Controller coverage drift check passes via `tools/check_doc_drift.py`.
 
@@ -37,6 +38,22 @@ This report captures documentation areas that still need follow-up to keep docs 
 - Gap: Limited incident runbooks for production troubleshooting (auth failures, migration rollback strategy, queue conflict replay).
 - Impact: Medium to High (operations readiness).
 - Recommendation: Add runbooks under `docs/ops/`.
+
+### 6) Business confirmations and implementation closure
+- Status: BC-05, BC-06, and BC-08 are implemented and merged.
+- Impact: Low (remaining work is operational rollout validation, not implementation closure).
+- Recommendation: Run staging retention dry-run verification and archive BC delivery tickets as complete.
+- Tracking file: `docs/Business-Confirmation-Checklist.md`
+- Issue tracking:
+  - BC-01: `#47`
+  - BC-02: `#48`
+  - BC-03: `#49`
+  - BC-04: `#50`
+  - BC-05: `#51`
+  - BC-06: `#52`
+  - BC-07: `#53`
+  - BC-08: `#54`
+- Execution plan: `docs/phase-2/18-business-confirmation-implementation-pr-slices.md`
 
 ## Assumptions
 - Source code and tests remain the final authority for behavior.

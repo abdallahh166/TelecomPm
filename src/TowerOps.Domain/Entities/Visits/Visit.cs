@@ -27,6 +27,7 @@ public sealed class Visit : AggregateRoot<Guid>
     public int? PlannedOrder { get; private set; }
     public DateTime? ActualStartTime { get; private set; }
     public DateTime? ActualEndTime { get; private set; }
+    public DateTime? EngineerReportedCompletionTimeUtc { get; private set; }
     public TimeRange? ActualDuration { get; private set; }
     
     // Status
@@ -222,6 +223,16 @@ public sealed class Visit : AggregateRoot<Guid>
         AddDomainEvent(new VisitCompletedEvent(Id, SiteId, EngineerId, ActualDuration));
     }
 
+    public void SetEngineerReportedCompletionTime(DateTime engineerReportedCompletionTimeUtc)
+    {
+        EngineerReportedCompletionTimeUtc = engineerReportedCompletionTimeUtc.Kind switch
+        {
+            DateTimeKind.Utc => engineerReportedCompletionTimeUtc,
+            DateTimeKind.Local => engineerReportedCompletionTimeUtc.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(engineerReportedCompletionTimeUtc, DateTimeKind.Utc)
+        };
+    }
+
     public void Submit()
     {
         if (Status != VisitStatus.Completed && Status != VisitStatus.NeedsCorrection)
@@ -351,22 +362,22 @@ public sealed class Visit : AggregateRoot<Guid>
 
     public void RemovePhoto(Guid photoId)
     {
-        var photo = Photos.FirstOrDefault(p => p.Id == photoId);
+        var photo = Photos.FirstOrDefault(p => p.Id == photoId && !p.IsDeleted);
         if (photo != null)
         {
-            Photos.Remove(photo);
+            photo.DeletePhoto("Visit.RemovePhoto");
             CalculateCompletionPercentage();
         }
     }
 
     public List<VisitPhoto> GetPhotosByType(PhotoType type)
     {
-        return Photos.Where(p => p.Type == type).ToList();
+        return Photos.Where(p => !p.IsDeleted && p.Type == type).ToList();
     }
 
     public List<VisitPhoto> GetPhotosByCategory(PhotoCategory category)
     {
-        return Photos.Where(p => p.Category == category).ToList();
+        return Photos.Where(p => !p.IsDeleted && p.Category == category).ToList();
     }
 
     // ==================== Readings Management ====================
@@ -481,7 +492,8 @@ public sealed class Visit : AggregateRoot<Guid>
         if (policy is null)
             throw new DomainException("Evidence policy is required.", "Visit.EvidencePolicy.Required");
 
-        IsPhotosComplete = Photos.Count >= policy.MinPhotosRequired;
+        var activePhotosCount = Photos.Count(p => !p.IsDeleted);
+        IsPhotosComplete = activePhotosCount >= policy.MinPhotosRequired;
         IsReadingsComplete = !policy.ReadingsRequired || Readings.Any();
 
         if (!policy.ChecklistRequired)
@@ -504,8 +516,8 @@ public sealed class Visit : AggregateRoot<Guid>
 
     private void CalculateCompletionPercentage()
     {
-        var beforePhotos = Photos.Count(p => p.Type == PhotoType.Before);
-        var afterPhotos = Photos.Count(p => p.Type == PhotoType.After);
+        var beforePhotos = Photos.Count(p => !p.IsDeleted && p.Type == PhotoType.Before);
+        var afterPhotos = Photos.Count(p => !p.IsDeleted && p.Type == PhotoType.After);
         var totalChecklistItems = Checklists.Count;
         var completedChecklistItems = Checklists.Count(c => c.Status != CheckStatus.NA);
 
@@ -545,7 +557,7 @@ public sealed class Visit : AggregateRoot<Guid>
         var photosWeight = 40;
         var photosScore = policy.MinPhotosRequired <= 0
             ? 100
-            : Math.Min(100, Photos.Count * 100 / policy.MinPhotosRequired);
+            : Math.Min(100, Photos.Count(p => !p.IsDeleted) * 100 / policy.MinPhotosRequired);
         achievedWeight += (int)(photosWeight * photosScore / 100);
 
         var readingsWeight = 30;

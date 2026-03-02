@@ -431,11 +431,29 @@ public class DatabaseSeeder
         var settings = new List<SystemSetting>
         {
             // SLA
+            CreateSetting("SLA:CM:P1:ResponseMinutes", "60", "SLA", "int", "CM response deadline for P1 in minutes", false, seededBy),
+            CreateSetting("SLA:CM:P2:ResponseMinutes", "240", "SLA", "int", "CM response deadline for P2 in minutes", false, seededBy),
+            CreateSetting("SLA:CM:P3:ResponseMinutes", "1440", "SLA", "int", "CM response deadline for P3 in minutes", false, seededBy),
+            CreateSetting("SLA:CM:P4:ResponseMinutes", "2880", "SLA", "int", "CM response deadline for P4 in minutes", false, seededBy),
+            CreateSetting("SLA:CM:P1:ResolutionMinutes", "240", "SLA", "int", "CM resolution deadline for P1 in minutes", false, seededBy),
+            CreateSetting("SLA:CM:P2:ResolutionMinutes", "480", "SLA", "int", "CM resolution deadline for P2 in minutes", false, seededBy),
+            CreateSetting("SLA:CM:P3:ResolutionMinutes", "1440", "SLA", "int", "CM resolution deadline for P3 in minutes", false, seededBy),
+            CreateSetting("SLA:CM:P4:ResolutionMinutes", "2880", "SLA", "int", "CM resolution deadline for P4 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P1:ResponseMinutes", "60", "SLA", "int", "PM response deadline for P1 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P2:ResponseMinutes", "240", "SLA", "int", "PM response deadline for P2 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P3:ResponseMinutes", "1440", "SLA", "int", "PM response deadline for P3 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P4:ResponseMinutes", "2880", "SLA", "int", "PM response deadline for P4 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P1:ResolutionMinutes", "240", "SLA", "int", "PM resolution deadline for P1 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P2:ResolutionMinutes", "480", "SLA", "int", "PM resolution deadline for P2 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P3:ResolutionMinutes", "1440", "SLA", "int", "PM resolution deadline for P3 in minutes", false, seededBy),
+            CreateSetting("SLA:PM:P4:ResolutionMinutes", "2880", "SLA", "int", "PM resolution deadline for P4 in minutes", false, seededBy),
             CreateSetting("SLA:P1:ResponseMinutes", "60", "SLA", "int", "Response deadline for P1 in minutes", false, seededBy),
             CreateSetting("SLA:P2:ResponseMinutes", "240", "SLA", "int", "Response deadline for P2 in minutes", false, seededBy),
             CreateSetting("SLA:P3:ResponseMinutes", "1440", "SLA", "int", "Response deadline for P3 in minutes", false, seededBy),
             CreateSetting("SLA:P4:ResponseMinutes", "2880", "SLA", "int", "Response deadline for P4 in minutes", false, seededBy),
-            CreateSetting("SLA:AtRiskThresholdPercent", "70", "SLA", "int", "At-risk threshold as percent of response window elapsed", false, seededBy),
+            CreateSetting("SLA:AtRiskThresholdPercent", "80", "SLA", "int", "Legacy at-risk threshold as percent of response window elapsed", false, seededBy),
+            CreateSetting("SLA:CM:AtRiskThresholdPercent", "80", "SLA", "int", "CM at-risk threshold as percent of response window elapsed", false, seededBy),
+            CreateSetting("SLA:PM:AtRiskThresholdPercent", "80", "SLA", "int", "PM at-risk threshold as percent of response window elapsed", false, seededBy),
             CreateSetting("SLA:Evaluation:Enabled", "true", "SLA", "bool", "Enable background SLA status evaluation", false, seededBy),
             CreateSetting("SLA:Evaluation:IntervalSeconds", "60", "SLA", "int", "SLA evaluation polling interval in seconds", false, seededBy),
             CreateSetting("SLA:Evaluation:BatchSize", "200", "SLA", "int", "Number of open work orders evaluated per cycle", false, seededBy),
@@ -490,6 +508,28 @@ public class DatabaseSeeder
             // Asset
             CreateSetting("Asset:WarrantyAlertDaysBeforeExpiry", "30", "Asset", "int", "Days before warranty expiry alert", false, seededBy),
             CreateSetting("Asset:AutoRegisterFromImport", "true", "Asset", "bool", "Auto-register assets during import", false, seededBy),
+
+            // Upload Security
+            CreateSetting("UploadSecurity:QuarantineContainer", "quarantine", "UploadSecurity", "string", "Container/prefix for newly uploaded files pending malware scan", false, seededBy),
+            CreateSetting("UploadSecurity:MalwareScan:Provider", "ClamAV", "UploadSecurity", "string", "Malware scanner provider (ClamAV or AzureDefender)", false, seededBy),
+            CreateSetting("UploadSecurity:ClamAV:Host", string.Empty, "UploadSecurity", "string", "ClamAV host for INSTREAM scanning", false, seededBy),
+            CreateSetting("UploadSecurity:ClamAV:Port", "3310", "UploadSecurity", "int", "ClamAV TCP port", false, seededBy),
+            CreateSetting("UploadSecurity:ClamAV:TimeoutSeconds", "10", "UploadSecurity", "int", "ClamAV scan timeout in seconds", false, seededBy),
+            CreateSetting("UploadSecurity:Scan:Enabled", "true", "UploadSecurity", "bool", "Enable upload malware scan background worker", false, seededBy),
+            CreateSetting("UploadSecurity:Scan:IntervalSeconds", "60", "UploadSecurity", "int", "Upload scan polling interval seconds", false, seededBy),
+            CreateSetting("UploadSecurity:Scan:BatchSize", "100", "UploadSecurity", "int", "Pending uploads scanned per cycle", false, seededBy),
+
+            // Privacy / retention
+            CreateSetting("Privacy:Retention:OperationalYears", "5", "Privacy", "int", "Operational data minimum retention in years", false, seededBy),
+            CreateSetting("Privacy:Retention:SignatureYears", "7", "Privacy", "int", "Signature evidence retention in years", false, seededBy),
+            CreateSetting("Privacy:Retention:AuditLogYears", "7", "Privacy", "int", "Audit log retention in years", false, seededBy),
+            CreateSetting("Privacy:Retention:SoftDeleteGraceDays", "90", "Privacy", "int", "Soft-delete grace period before hard purge", false, seededBy),
+            CreateSetting("Privacy:Retention:CleanupEnabled", "true", "Privacy", "bool", "Enable background retention cleanup worker", false, seededBy),
+            CreateSetting("Privacy:Retention:CleanupIntervalHours", "24", "Privacy", "int", "Retention cleanup polling interval in hours", false, seededBy),
+            CreateSetting("Privacy:Retention:CleanupBatchSize", "200", "Privacy", "int", "Maximum records processed per cleanup cycle", false, seededBy),
+            CreateSetting("Privacy:Jurisdiction:Strategy", "Strictest", "Privacy", "string", "Applies strictest retention policy among active client contracts", false, seededBy),
+            CreateSetting("Privacy:Export:TtlDays", "30", "Privacy", "int", "Days an export request remains downloadable", false, seededBy),
+            CreateSetting("Privacy:Export:MaxItemsPerCollection", "2000", "Privacy", "int", "Maximum items included per collection in user export payload", false, seededBy),
 
             // Import
             CreateSetting("Import:SkipInvalidRows", "true", "Import", "bool", "Skip invalid rows during imports", false, seededBy),

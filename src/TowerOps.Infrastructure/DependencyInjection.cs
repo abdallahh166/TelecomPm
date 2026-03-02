@@ -57,12 +57,14 @@ public static class DependencyInjection
         services.AddScoped<ISystemSettingsRepository, SystemSettingsRepository>();
         services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<IDailyPlanRepository, DailyPlanRepository>();
         services.AddScoped<ISyncQueueRepository, SyncQueueRepository>();
         services.AddScoped<ISyncConflictRepository, SyncConflictRepository>();
         services.AddScoped<IAssetRepository, AssetRepository>();
         services.AddScoped<IUnusedAssetRepository, UnusedAssetRepository>();
+        services.AddScoped<IUserDataExportRequestRepository, UserDataExportRequestRepository>();
         services.AddScoped<IPortalReadRepository, PortalReadRepository>();
 
         // Domain event dispatcher
@@ -98,9 +100,15 @@ public static class DependencyInjection
         services.AddScoped<IReportGenerationService, ReportGenerationService>();
         services.AddScoped<ISettingsEncryptionService, SettingsEncryptionService>();
         services.AddScoped<ISystemSettingsService, SystemSettingsService>();
+        services.AddScoped<IUploadedFileValidationService, UploadedFileValidationService>();
+        services.AddScoped<IFileMalwareScanService, FileMalwareScanService>();
         services.AddScoped<IOtpService, OtpService>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<IMfaService, MfaService>();
         services.AddSingleton<IOperationalMetrics, OperationalMetrics>();
         services.AddScoped<SlaEvaluationProcessor>();
+        services.AddScoped<UploadScanProcessor>();
+        services.AddScoped<DataRetentionProcessor>();
 
         // Domain Services with Infrastructure dependencies (Repository-dependent)
         services.AddScoped<IVisitNumberGeneratorService, VisitNumberGeneratorService>();
@@ -108,6 +116,8 @@ public static class DependencyInjection
         services.AddScoped<ISlaClockService, SlaClockService>();
         services.AddScoped<IGeoCheckInService, GeoCheckInService>();
         services.AddHostedService<SlaEvaluationHostedService>();
+        services.AddHostedService<UploadScanHostedService>();
+        services.AddHostedService<DataRetentionHostedService>();
 
         // HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();
