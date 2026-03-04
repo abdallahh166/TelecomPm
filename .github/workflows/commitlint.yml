@@ -17,3 +17,7 @@ jobs:
 
       - name: Lint commits (Conventional Commits)
         uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: ./commitlint.config.mjs
+          failOnWarnings: false
+          failOnErrors: true
