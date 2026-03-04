@@ -19,9 +19,10 @@ This report captures documentation areas that still need follow-up to keep docs 
 ## Remaining Gaps
 
 ### 1) DTO contract examples
-- Gap: API doc lists routes but does not include full request/response JSON examples per endpoint.
-- Impact: Medium (integration onboarding speed).
-- Recommendation: Add example payloads for high-traffic endpoints (visits, workorders, portal, imports).
+- Status: High-traffic examples are now documented in `docs/Api-Doc.md` (auth login, visits pending reviews, materials list, users list, portal workorders).
+- Remaining gap: not every endpoint has a dedicated request/response JSON example yet.
+- Impact: Low to Medium (edge endpoint onboarding speed).
+- Recommendation: Extend examples incrementally for less frequently used endpoints.
 
 ### 2) Historical sprint artifacts
 - Gap: Several sprint/assessment docs are historical snapshots and may conflict with latest behavior.
@@ -29,14 +30,22 @@ This report captures documentation areas that still need follow-up to keep docs 
 - Recommendation: Keep them marked as historical and avoid treating them as runtime source of truth.
 
 ### 3) Operational runbooks
-- Gap: Limited incident runbooks for production troubleshooting (auth failures, migration rollback strategy, queue conflict replay).
-- Impact: Medium to High (operations readiness).
-- Recommendation: Add runbooks under `docs/ops/`.
+- Status: Implemented under `docs/ops/`:
+  - `Incident-Runbook-Startup-Configuration-Failures.md`
+  - `Incident-Runbook-Database-Migration-and-Rollback.md`
+  - `Incident-Runbook-Sync-Conflict-Replay.md`
+- Remaining gap: add environment-specific on-call contacts/escalation matrix outside repository if required by operations policy.
 
 ### 4) Pagination contract consistency
-- Gap: Some list endpoints still return raw arrays while others return `PagedResponse<T>`.
-- Impact: Medium (frontend adapter complexity and inconsistent UX for total counts).
-- Recommendation: Follow `docs/Pagination-Consistency-Matrix.md` remediation target list.
+- Status: High-volume list endpoints now standardized to `PagedResponse<T>`:
+  - `GET /api/materials`
+  - `GET /api/users/office/{officeId}`
+  - `GET /api/users/role/{role}`
+  - `GET /api/visits/pending-reviews`
+  - `GET /api/visits/scheduled`
+- Remaining gap: a small set of list endpoints still return arrays (`/api/sites/maintenance`, `/api/materials/low-stock/{officeId}`).
+- Impact: Low.
+- Recommendation: Keep the remaining migration in backlog as non-blocker.
 
 ### 5) Business confirmations and implementation closure
 - Status: BC-05, BC-06, and BC-08 are implemented and merged.
@@ -60,8 +69,8 @@ This report captures documentation areas that still need follow-up to keep docs 
 
 ## Follow-up Checklist
 - [x] Add auto-generated command/query catalog
-- [ ] Add endpoint payload examples for critical routes
+- [x] Add endpoint payload examples for critical routes
 - [x] Add ERD or schema map
 - [x] Add unified file constraints matrix
 - [x] Add pagination consistency matrix
-- [ ] Add production runbooks
+- [x] Add production runbooks

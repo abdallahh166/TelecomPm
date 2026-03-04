@@ -40,16 +40,17 @@ Contract type:
 | `GET /api/portal/sites` | `page`, `pageSize`, `sortBy`, `sortDir` | page >= 1; pageSize 1..100 (default 25) | `siteCode,name,status,region` |
 | `GET /api/portal/workorders` | `page`, `pageSize`, `sortBy`, `sortDir` | page >= 1; pageSize 1..100 (default 25) | `createdAt,status,priority,siteCode,slaDeadline` |
 | `GET /api/portal/visits/{siteCode}` | `page`, `pageSize`, `sortBy`, `sortDir` | page >= 1; pageSize 1..100 (default 25) | `scheduledDate,status,type,visitNumber` |
+| `GET /api/materials` | `officeId`, `onlyInStock`, `page`, `pageSize` | page >= 1; pageSize 1..100 (default 25) | n/a |
+| `GET /api/users/office/{officeId}` | `onlyActive`, `page`, `pageSize` | page >= 1; pageSize 1..100 (default 25) | n/a |
+| `GET /api/users/role/{role}` | `officeId`, `page`, `pageSize` | page >= 1; pageSize 1..100 (default 25) | n/a |
+| `GET /api/visits/pending-reviews` | `officeId`, `page`, `pageSize` | page >= 1; pageSize 1..100 (default 25) | n/a |
+| `GET /api/visits/scheduled` | `date`, `engineerId`, `page`, `pageSize` | page >= 1; pageSize 1..100 (default 25) | n/a |
 
 ## Endpoints Returning Arrays (No Pagination Metadata)
 | Endpoint | Notes |
 |---|---|
-| `GET /api/materials` | Office-scoped list, no `PagedResponse` |
-| `GET /api/users/office/{officeId}` | Plain list |
-| `GET /api/users/role/{role}` | Plain list |
 | `GET /api/sites/maintenance` | Filtered list, no paging |
-| `GET /api/visits/pending-reviews` | Plain list |
-| `GET /api/visits/scheduled` | Plain list |
+| `GET /api/materials/low-stock/{officeId}` | Filtered list, no paging |
 | `GET /api/portal/sla-report` | Aggregated DTO, not list paging |
 
 ## Frontend Handling Policy
@@ -59,10 +60,6 @@ Contract type:
 - Keep endpoint-specific adapters in frontend API layer.
 
 ## Remediation Target
-For long-term consistency, prioritize migrating high-volume array endpoints to `PagedResponse<T>`:
-1. `GET /api/materials`
-2. `GET /api/users/office/{officeId}`
-3. `GET /api/users/role/{role}`
-4. `GET /api/visits/pending-reviews`
-5. `GET /api/visits/scheduled`
-
+For long-term consistency, prioritize migrating remaining array list endpoints to `PagedResponse<T>`:
+1. `GET /api/sites/maintenance`
+2. `GET /api/materials/low-stock/{officeId}`

@@ -50,14 +50,21 @@ public static class VisitsContractMapper
             To = parameters.To
         };
 
-    public static GetPendingReviewsQuery ToQuery(this Guid? officeId)
-        => new() { OfficeId = officeId };
+    public static GetPendingReviewsQuery ToQuery(this Guid? officeId, int page, int pageSize)
+        => new()
+        {
+            OfficeId = officeId,
+            Page = page,
+            PageSize = pageSize
+        };
 
     public static GetScheduledVisitsQuery ToQuery(this ScheduledVisitsQueryParameters parameters)
         => new()
         {
             Date = parameters.Date,
-            EngineerId = parameters.EngineerId
+            EngineerId = parameters.EngineerId,
+            Page = parameters.Page,
+            PageSize = parameters.PageSize
         };
 
     public static CreateVisitCommand ToCommand(this CreateVisitRequest request)

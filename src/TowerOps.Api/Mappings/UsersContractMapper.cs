@@ -76,16 +76,22 @@ public static class UsersContractMapper
             UserId = userId
         };
 
-    public static GetUsersByOfficeQuery ToOfficeQuery(this Guid officeId)
+    public static GetUsersByOfficeQuery ToOfficeQuery(this Guid officeId, bool? onlyActive, int page, int pageSize)
         => new()
         {
-            OfficeId = officeId
+            OfficeId = officeId,
+            OnlyActive = onlyActive,
+            Page = page,
+            PageSize = pageSize
         };
 
-    public static GetUsersByRoleQuery ToQuery(this UserRole role)
+    public static GetUsersByRoleQuery ToQuery(this UserRole role, Guid? officeId, int page, int pageSize)
         => new()
         {
-            Role = role
+            Role = role,
+            OfficeId = officeId,
+            Page = page,
+            PageSize = pageSize
         };
 
     public static GetUserPerformanceQuery ToQuery(this Guid userId, DateTime? fromDate, DateTime? toDate)

@@ -83,7 +83,12 @@ public sealed class MaterialsController : ApiControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] Guid officeId, [FromQuery] bool? onlyInStock, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] Guid officeId,
+        [FromQuery] bool? onlyInStock,
+        [FromQuery(Name = "page")] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
         var effectiveOfficeId = officeId != Guid.Empty ? officeId : _currentUserService.OfficeId;
         if (effectiveOfficeId == Guid.Empty)
@@ -91,8 +96,16 @@ public sealed class MaterialsController : ApiControllerBase
             return Failure("officeId is required.");
         }
 
-        var result = await Mediator.Send(effectiveOfficeId.ToQuery(onlyInStock), cancellationToken);
-        return HandleResult(result);
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = Math.Clamp(pageSize, 1, 100);
+
+        var result = await Mediator.Send(
+            effectiveOfficeId.ToQuery(onlyInStock, safePage, safePageSize),
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+            return HandleResult(result);
+
+        return Ok(result.Value.ToPagedResponse());
     }
 
     [HttpGet("low-stock/{officeId:guid}")]

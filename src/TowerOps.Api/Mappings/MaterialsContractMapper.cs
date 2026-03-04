@@ -19,11 +19,13 @@ public static class MaterialsContractMapper
     public static GetMaterialByIdQuery ToMaterialByIdQuery(this Guid materialId)
         => new() { MaterialId = materialId };
 
-    public static GetMaterialsByOfficeQuery ToQuery(this Guid officeId, bool? onlyInStock = null)
+    public static GetMaterialsByOfficeQuery ToQuery(this Guid officeId, bool? onlyInStock, int page, int pageSize)
         => new()
         {
             OfficeId = officeId,
-            OnlyInStock = onlyInStock
+            OnlyInStock = onlyInStock,
+            Page = page,
+            PageSize = pageSize
         };
 
     public static CreateMaterialCommand ToCommand(this CreateMaterialRequest request)
