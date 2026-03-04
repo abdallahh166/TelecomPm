@@ -15,6 +15,13 @@ Assumptions:
 - Authentication is JWT bearer.
 - All business timestamps are UTC.
 
+Companion technical references:
+- `docs/CQRS-Inventory.md` (command/query inventory)
+- `docs/Database-Schema-and-ERD.md` (schema and logical ERD)
+- `docs/File-Constraints-Matrix.md` (upload/import/signature constraints)
+- `docs/Pagination-Consistency-Matrix.md` (pagination contracts and inconsistencies)
+- `docs/Documentation-Gap-Report.md` (remaining docs debt)
+
 ---
 
 ## 1) Full Reporting List
