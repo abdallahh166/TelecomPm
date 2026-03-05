@@ -401,6 +401,145 @@ button {
   background: rgba(0, 194, 255, 0.08);
 }
 
+.admin-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-tabs a {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+
+.admin-tabs a.active {
+  color: #031321;
+  border-color: rgba(0, 194, 255, 0.2);
+  background: linear-gradient(120deg, #0098cf, #00c2ff);
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.field-input.compact {
+  min-width: 130px;
+  padding: 8px 10px;
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid rgba(30, 58, 95, 0.65);
+  border-radius: 10px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(30, 58, 95, 0.55);
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-table th {
+  font-family: "JetBrains Mono", monospace;
+  color: #a8d8f3;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-outline.danger {
+  border-color: rgba(255, 68, 68, 0.5);
+  color: #ffb3ba;
+}
+
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.field-input.wide {
+  grid-column: 1 / -1;
+}
+
+.inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #cee4f8;
+  font-size: 13px;
+}
+
+.pagination-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 99px;
+  border: 1px solid;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.badge--ok {
+  border-color: rgba(0, 232, 150, 0.52);
+  color: #95ffe0;
+  background: rgba(0, 232, 150, 0.12);
+}
+
+.badge--muted {
+  border-color: rgba(107, 139, 174, 0.48);
+  color: #bbd0e4;
+  background: rgba(107, 139, 174, 0.11);
+}
+
 @media (max-width: 900px) {
   .login-card {
     grid-template-columns: 1fr;

@@ -27,7 +27,7 @@ export function AppShell() {
       </header>
       <nav className="app-nav">
         <NavLink to="/">Dashboard</NavLink>
-        <NavLink to="/admin">Admin Probe</NavLink>
+        <NavLink to="/admin/offices">Admin</NavLink>
       </nav>
       <main className="app-main">
         <Outlet />
