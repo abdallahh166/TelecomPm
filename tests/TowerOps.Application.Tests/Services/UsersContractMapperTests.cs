@@ -94,18 +94,29 @@ public class UsersContractMapperTests
     public void ToOfficeQuery_FromOfficeId_MapsOfficeId()
     {
         var officeId = Guid.NewGuid();
+        const int page = 2;
+        const int pageSize = 50;
 
-        var query = officeId.ToOfficeQuery();
+        var query = officeId.ToOfficeQuery(true, page, pageSize);
 
         query.OfficeId.Should().Be(officeId);
+        query.OnlyActive.Should().BeTrue();
+        query.Page.Should().Be(page);
+        query.PageSize.Should().Be(pageSize);
     }
 
     [Fact]
     public void ToQuery_FromRole_MapsRole()
     {
-        var query = UserRole.Manager.ToQuery();
+        var officeId = Guid.NewGuid();
+        const int page = 3;
+        const int pageSize = 10;
+        var query = UserRole.Manager.ToQuery(officeId, page, pageSize);
 
         query.Role.Should().Be(UserRole.Manager);
+        query.OfficeId.Should().Be(officeId);
+        query.Page.Should().Be(page);
+        query.PageSize.Should().Be(pageSize);
     }
 
     [Fact]

@@ -115,24 +115,46 @@ public sealed class UsersController : ApiControllerBase
     [HttpGet("office/{officeId:guid}")]
     public async Task<IActionResult> GetByOffice(
         Guid officeId,
-        CancellationToken cancellationToken)
+        [FromQuery] bool? onlyActive,
+        [FromQuery(Name = "page")] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
-        var result = await Mediator.Send(officeId.ToOfficeQuery(), cancellationToken);
-        return HandleResult(result);
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = Math.Clamp(pageSize, 1, 100);
+
+        var result = await Mediator.Send(
+            officeId.ToOfficeQuery(onlyActive, safePage, safePageSize),
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+            return HandleResult(result);
+
+        return Ok(result.Value.ToPagedResponse());
     }
 
     [HttpGet("role/{role}")]
     public async Task<IActionResult> GetByRole(
         string role,
-        CancellationToken cancellationToken)
+        [FromQuery] Guid? officeId,
+        [FromQuery(Name = "page")] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
         if (!Enum.TryParse<UserRole>(role, true, out var userRole))
         {
             return Failure($"Invalid role: {role}");
         }
 
-        var result = await Mediator.Send(userRole.ToQuery(), cancellationToken);
-        return HandleResult(result);
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = Math.Clamp(pageSize, 1, 100);
+
+        var result = await Mediator.Send(
+            userRole.ToQuery(officeId, safePage, safePageSize),
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+            return HandleResult(result);
+
+        return Ok(result.Value.ToPagedResponse());
     }
 
     [HttpGet("{userId:guid}/performance")]

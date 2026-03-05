@@ -6,12 +6,17 @@ namespace TowerOps.Domain.Specifications.UserSpecifications;
 
 public sealed class UsersByRoleSpecification : BaseSpecification<User>
 {
-    public UsersByRoleSpecification(UserRole role, Guid? officeId = null)
+    public UsersByRoleSpecification(UserRole role, Guid? officeId = null, int? skip = null, int? take = null)
         : base(u => u.Role == role && 
                     (!officeId.HasValue || u.OfficeId == officeId.Value) && 
                     u.IsActive && 
                     !u.IsDeleted)
     {
         ApplyOrderBy(u => u.Name);
+
+        if (skip.HasValue && take.HasValue)
+        {
+            ApplyPaging(skip.Value, take.Value);
+        }
     }
 }
