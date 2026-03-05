@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
@@ -12,7 +13,7 @@ import { authApi } from "./authApi";
 import { extractPermissions, extractRole } from "./jwt";
 import { tokenStore } from "./tokenStore";
 import type { AuthResponse, AuthSession, LoginRequest } from "./authTypes";
-import { apiClient } from "../http/apiClient";
+import { apiClient, setApiAuthHandlers } from "../http/apiClient";
 
 type AuthContextValue = {
   session: AuthSession | null;
@@ -57,6 +58,7 @@ function commitSession(session: AuthSession | null): void {
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const refreshInFlight = useRef<Promise<string | null> | null>(null);
 
   const clearSession = useCallback(() => {
     setSession(null);
@@ -82,6 +84,48 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     clearSession();
   }, [clearSession]);
+
+  const refreshAccessToken = useCallback(async (): Promise<string | null> => {
+    if (refreshInFlight.current) {
+      return refreshInFlight.current;
+    }
+
+    refreshInFlight.current = (async () => {
+      const stored = tokenStore.load();
+      if (!stored || isExpired(stored.refreshTokenExpiresAtUtc)) {
+        clearSession();
+        return null;
+      }
+
+      try {
+        const refreshed = await authApi.refresh({
+          refreshToken: stored.refreshToken,
+        });
+        const normalized = normalizeSession(refreshed);
+        setSession(normalized);
+        commitSession(normalized);
+        return normalized.accessToken;
+      } catch {
+        clearSession();
+        return null;
+      } finally {
+        refreshInFlight.current = null;
+      }
+    })();
+
+    return refreshInFlight.current;
+  }, [clearSession]);
+
+  useEffect(() => {
+    setApiAuthHandlers({
+      refreshAccessToken,
+      onAuthFailure: clearSession,
+    });
+
+    return () => {
+      setApiAuthHandlers(null);
+    };
+  }, [clearSession, refreshAccessToken]);
 
   useEffect(() => {
     let mounted = true;
@@ -113,14 +157,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       }
 
       try {
-        const refreshed = await authApi.refresh({
-          refreshToken: stored.refreshToken,
-        });
-        const normalized = normalizeSession(refreshed);
-        if (mounted) {
-          setSession(normalized);
-          commitSession(normalized);
-        }
+        await refreshAccessToken();
       } catch {
         if (mounted) {
           clearSession();
@@ -137,7 +174,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       mounted = false;
     };
-  }, [clearSession]);
+  }, [clearSession, refreshAccessToken]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

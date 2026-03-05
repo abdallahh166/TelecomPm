@@ -30,6 +30,7 @@ export type ApiRequestOptions = {
   body?: unknown;
   headers?: Record<string, string>;
   signal?: AbortSignal;
+  timeoutMs?: number;
   skipAuth?: boolean;
   suppressGlobalError?: boolean;
 };

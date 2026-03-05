@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { PaginationBar } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
+import { getErrorMessage } from "../../shared/errors/errorMessage";
 import {
   settingsApi,
   type SystemSettingDto,
@@ -44,6 +45,10 @@ export function SettingsAdminPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingGroup, setIsLoadingGroup] = useState(false);
+  const [testingService, setTestingService] = useState<"twilio" | "email" | "firebase" | null>(null);
 
   const [groupQuery, setGroupQuery] = useState("");
   const [groupResult, setGroupResult] = useState<SystemSettingDto[] | null>(null);
@@ -51,6 +56,7 @@ export function SettingsAdminPage() {
 
   const loadSettings = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await settingsApi.list({
         page,
@@ -61,6 +67,8 @@ export function SettingsAdminPage() {
 
       setSettings(response.items);
       setPagination(response.pagination);
+    } catch (loadError) {
+      setError(getErrorMessage(loadError, "Failed to load settings."));
     } finally {
       setIsLoading(false);
     }
@@ -75,6 +83,17 @@ export function SettingsAdminPage() {
   };
 
   const saveSetting = async (): Promise<void> => {
+    setError(null);
+    if (!editState.group.trim()) {
+      setError("Group is required.");
+      return;
+    }
+
+    if (!editState.key.trim()) {
+      setError("Key is required.");
+      return;
+    }
+
     const request: UpsertSystemSettingRequest = {
       key: editState.key.trim(),
       value: editState.value,
@@ -84,9 +103,16 @@ export function SettingsAdminPage() {
       isEncrypted: editState.isEncrypted,
     };
 
-    await settingsApi.upsert([request]);
-    setMessage("Setting saved.");
-    await loadSettings();
+    setIsSaving(true);
+    try {
+      await settingsApi.upsert([request]);
+      setMessage("Setting saved.");
+      await loadSettings();
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Failed to save setting."));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const loadByGroup = async (): Promise<void> => {
@@ -96,13 +122,29 @@ export function SettingsAdminPage() {
       return;
     }
 
-    const result = await settingsApi.byGroup(trimmedGroup);
-    setGroupResult(result);
+    setError(null);
+    setIsLoadingGroup(true);
+    try {
+      const result = await settingsApi.byGroup(trimmedGroup);
+      setGroupResult(result);
+    } catch (loadError) {
+      setError(getErrorMessage(loadError, "Failed to load settings for this group."));
+    } finally {
+      setIsLoadingGroup(false);
+    }
   };
 
   const testConnection = async (service: "twilio" | "email" | "firebase"): Promise<void> => {
-    const response = await settingsApi.testConnection(service);
-    setMessage(response);
+    setError(null);
+    setTestingService(service);
+    try {
+      const response = await settingsApi.testConnection(service);
+      setMessage(response);
+    } catch (testError) {
+      setError(getErrorMessage(testError, "Service test failed."));
+    } finally {
+      setTestingService(null);
+    }
   };
 
   return (
@@ -219,8 +261,13 @@ export function SettingsAdminPage() {
             />
             Encrypted
           </label>
-          <button type="button" className="btn-primary" onClick={() => void saveSetting()}>
-            Save Setting
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={isSaving || testingService !== null}
+            onClick={() => void saveSetting()}
+          >
+            {isSaving ? "Saving..." : "Save Setting"}
           </button>
         </div>
       </article>
@@ -234,8 +281,8 @@ export function SettingsAdminPage() {
             value={groupQuery}
             onChange={(event) => setGroupQuery(event.target.value)}
           />
-          <button type="button" className="btn-outline" onClick={() => void loadByGroup()}>
-            Load Group
+          <button type="button" className="btn-outline" disabled={isLoadingGroup || isSaving} onClick={() => void loadByGroup()}>
+            {isLoadingGroup ? "Loading..." : "Load Group"}
           </button>
         </div>
         {groupResult ? (
@@ -269,18 +316,34 @@ export function SettingsAdminPage() {
       <article className="panel">
         <h3>Test External Services</h3>
         <div className="toolbar-group">
-          <button type="button" className="btn-outline" onClick={() => void testConnection("twilio")}>
-            Test Twilio
+          <button
+            type="button"
+            className="btn-outline"
+            disabled={testingService !== null || isSaving}
+            onClick={() => void testConnection("twilio")}
+          >
+            {testingService === "twilio" ? "Testing..." : "Test Twilio"}
           </button>
-          <button type="button" className="btn-outline" onClick={() => void testConnection("email")}>
-            Test Email
+          <button
+            type="button"
+            className="btn-outline"
+            disabled={testingService !== null || isSaving}
+            onClick={() => void testConnection("email")}
+          >
+            {testingService === "email" ? "Testing..." : "Test Email"}
           </button>
-          <button type="button" className="btn-outline" onClick={() => void testConnection("firebase")}>
-            Test Firebase
+          <button
+            type="button"
+            className="btn-outline"
+            disabled={testingService !== null || isSaving}
+            onClick={() => void testConnection("firebase")}
+          >
+            {testingService === "firebase" ? "Testing..." : "Test Firebase"}
           </button>
         </div>
       </article>
 
+      {error ? <p className="text-danger">{error}</p> : null}
       {message ? <p className="text-muted">{message}</p> : null}
     </div>
   );

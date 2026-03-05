@@ -1,8 +1,10 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../core/auth/AuthContext";
+import { ADMIN_WORKSPACE_PERMISSIONS, hasAnyPermission } from "../../features/admin/permissionKeys";
 
 export function AppShell() {
-  const { session, logout } = useAuth();
+  const { session, logout, hasPermission } = useAuth();
+  const showAdminNav = hasAnyPermission(hasPermission, ADMIN_WORKSPACE_PERMISSIONS);
 
   return (
     <div className="app-shell">
@@ -27,7 +29,7 @@ export function AppShell() {
       </header>
       <nav className="app-nav">
         <NavLink to="/">Dashboard</NavLink>
-        <NavLink to="/admin/offices">Admin</NavLink>
+        {showAdminNav ? <NavLink to="/admin">Admin</NavLink> : null}
       </nav>
       <main className="app-main">
         <Outlet />

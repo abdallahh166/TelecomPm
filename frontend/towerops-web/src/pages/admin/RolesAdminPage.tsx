@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
+import { getErrorMessage } from "../../shared/errors/errorMessage";
 import {
   rolesApi,
   type CreateRoleRequest,
@@ -48,6 +49,10 @@ export function RolesAdminPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingRoleName, setDeletingRoleName] = useState<string | null>(null);
 
   const [createForm, setCreateForm] = useState<RoleFormState>(EMPTY_ROLE_FORM);
   const [selectedRoleName, setSelectedRoleName] = useState<string | null>(null);
@@ -55,6 +60,7 @@ export function RolesAdminPage() {
 
   const loadRoles = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await rolesApi.list({
         page,
@@ -64,6 +70,8 @@ export function RolesAdminPage() {
       });
       setRoles(response.items);
       setPagination(response.pagination);
+    } catch (loadError) {
+      setError(getErrorMessage(loadError, "Failed to load roles."));
     } finally {
       setIsLoading(false);
     }
@@ -77,9 +85,15 @@ export function RolesAdminPage() {
     let mounted = true;
 
     const loadPermissions = async (): Promise<void> => {
-      const items = await rolesApi.listPermissions();
-      if (mounted) {
-        setPermissionsCatalog(items);
+      try {
+        const items = await rolesApi.listPermissions();
+        if (mounted) {
+          setPermissionsCatalog(items);
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(getErrorMessage(loadError, "Failed to load permissions catalog."));
+        }
       }
     };
 
@@ -92,25 +106,54 @@ export function RolesAdminPage() {
   const onCreate = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setMessage(null);
+    setError(null);
+
+    const parsedPermissions = parsePermissionsCsv(createForm.permissionsCsv);
+    if (!createForm.name.trim()) {
+      setError("Role name is required.");
+      return;
+    }
+
+    if (!createForm.displayName.trim()) {
+      setError("Role display name is required.");
+      return;
+    }
+
+    if (parsedPermissions.length === 0) {
+      setError("At least one permission is required.");
+      return;
+    }
 
     const request: CreateRoleRequest = {
       name: createForm.name.trim(),
       displayName: createForm.displayName.trim(),
       description: createForm.description.trim() || undefined,
       isActive: createForm.isActive,
-      permissions: parsePermissionsCsv(createForm.permissionsCsv),
+      permissions: parsedPermissions,
     };
 
-    await rolesApi.create(request);
-    setCreateForm(EMPTY_ROLE_FORM);
-    setMessage("Role created.");
-    await loadRoles();
+    setIsCreating(true);
+    try {
+      await rolesApi.create(request);
+      setCreateForm(EMPTY_ROLE_FORM);
+      setMessage("Role created.");
+      await loadRoles();
+    } catch (createError) {
+      setError(getErrorMessage(createError, "Failed to create role."));
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const selectRole = async (roleName: string): Promise<void> => {
-    const role = await rolesApi.getById(roleName);
-    setSelectedRoleName(roleName);
-    setEditForm(mapRoleToForm(role));
+    setError(null);
+    try {
+      const role = await rolesApi.getById(roleName);
+      setSelectedRoleName(roleName);
+      setEditForm(mapRoleToForm(role));
+    } catch (selectError) {
+      setError(getErrorMessage(selectError, "Failed to load role details."));
+    }
   };
 
   const onSaveRole = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -119,17 +162,36 @@ export function RolesAdminPage() {
       return;
     }
 
+    setError(null);
+    const parsedPermissions = parsePermissionsCsv(editForm.permissionsCsv);
+    if (!editForm.displayName.trim()) {
+      setError("Role display name is required.");
+      return;
+    }
+
+    if (parsedPermissions.length === 0) {
+      setError("At least one permission is required.");
+      return;
+    }
+
     const request: UpdateRoleRequest = {
       displayName: editForm.displayName.trim(),
       description: editForm.description.trim() || undefined,
       isActive: editForm.isActive,
-      permissions: parsePermissionsCsv(editForm.permissionsCsv),
+      permissions: parsedPermissions,
     };
 
-    await rolesApi.update(selectedRoleName, request);
-    setMessage("Role updated.");
-    await selectRole(selectedRoleName);
-    await loadRoles();
+    setIsSaving(true);
+    try {
+      await rolesApi.update(selectedRoleName, request);
+      setMessage("Role updated.");
+      await selectRole(selectedRoleName);
+      await loadRoles();
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Failed to update role."));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const onDeleteRole = async (roleName: string): Promise<void> => {
@@ -138,13 +200,21 @@ export function RolesAdminPage() {
       return;
     }
 
-    await rolesApi.remove(roleName);
-    setMessage("Role deleted.");
-    if (selectedRoleName === roleName) {
-      setSelectedRoleName(null);
-      setEditForm(EMPTY_ROLE_FORM);
+    setError(null);
+    setDeletingRoleName(roleName);
+    try {
+      await rolesApi.remove(roleName);
+      setMessage("Role deleted.");
+      if (selectedRoleName === roleName) {
+        setSelectedRoleName(null);
+        setEditForm(EMPTY_ROLE_FORM);
+      }
+      await loadRoles();
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError, "Failed to delete role."));
+    } finally {
+      setDeletingRoleName(null);
     }
-    await loadRoles();
   };
 
   return (
@@ -185,10 +255,10 @@ export function RolesAdminPage() {
                     <button
                       type="button"
                       className="btn-outline danger"
-                      disabled={roleItem.isSystem}
+                      disabled={roleItem.isSystem || deletingRoleName !== null}
                       onClick={() => void onDeleteRole(roleItem.name)}
                     >
-                      Delete
+                      {deletingRoleName === roleItem.name ? "Deleting..." : "Delete"}
                     </button>
                   </td>
                 </tr>
@@ -244,8 +314,12 @@ export function RolesAdminPage() {
             value={createForm.permissionsCsv}
             onChange={(event) => setCreateForm((current) => ({ ...current, permissionsCsv: event.target.value }))}
           />
-          <button type="submit" className="btn-primary">
-            Create Role
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isCreating || isSaving || deletingRoleName !== null}
+          >
+            {isCreating ? "Creating..." : "Create Role"}
           </button>
         </form>
       </article>
@@ -281,8 +355,8 @@ export function RolesAdminPage() {
               value={editForm.permissionsCsv}
               onChange={(event) => setEditForm((current) => ({ ...current, permissionsCsv: event.target.value }))}
             />
-            <button type="submit" className="btn-primary">
-              Save Role
+            <button type="submit" className="btn-primary" disabled={isCreating || isSaving || deletingRoleName !== null}>
+              {isSaving ? "Saving..." : "Save Role"}
             </button>
           </form>
           <p className="text-muted">
@@ -292,6 +366,7 @@ export function RolesAdminPage() {
         </article>
       ) : null}
 
+      {error ? <p className="text-danger">{error}</p> : null}
       {message ? <p className="text-muted">{message}</p> : null}
     </div>
   );

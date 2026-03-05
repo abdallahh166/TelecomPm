@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useAuth } from "../../core/auth/AuthContext";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
+import { hasAnyPermission, USER_MANAGEMENT_PERMISSIONS } from "../../features/admin/permissionKeys";
 import { officesApi, type OfficeDto } from "../../features/admin/officesApi";
 import {
   USER_ROLES,
@@ -11,6 +13,7 @@ import {
   type UserDto,
   type UserRole,
 } from "../../features/admin/usersApi";
+import { getErrorMessage } from "../../shared/errors/errorMessage";
 
 type UserFormState = {
   name: string;
@@ -60,6 +63,10 @@ function parsePositiveInt(value: string): number | undefined {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }
 
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
 function parseSpecializations(value: string): string[] | undefined {
   const parsed = value
     .split(",")
@@ -80,6 +87,9 @@ function mapUserToEditForm(user: UserDetailDto): UserEditFormState {
 }
 
 export function UsersAdminPage() {
+  const { hasPermission } = useAuth();
+  const canManageUsers = hasAnyPermission(hasPermission, USER_MANAGEMENT_PERMISSIONS);
+
   const [offices, setOffices] = useState<OfficeDto[]>([]);
   const [queryMode, setQueryMode] = useState<"office" | "role">("office");
   const [officeId, setOfficeId] = useState<string>("");
@@ -90,6 +100,11 @@ export function UsersAdminPage() {
   const [pagination, setPagination] = useState(defaultPagination());
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isChangingRole, setIsChangingRole] = useState(false);
+  const [runningActionUserId, setRunningActionUserId] = useState<string | null>(null);
 
   const [createForm, setCreateForm] = useState<UserFormState>(EMPTY_CREATE_FORM);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -117,6 +132,7 @@ export function UsersAdminPage() {
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       if (queryMode === "office" && officeId) {
         const response = await usersApi.listByOffice(officeId, {
@@ -136,6 +152,8 @@ export function UsersAdminPage() {
       });
       setUsers(response.items);
       setPagination(response.pagination);
+    } catch (loadError) {
+      setError(getErrorMessage(loadError, "Failed to load users."));
     } finally {
       setIsLoading(false);
     }
@@ -151,7 +169,33 @@ export function UsersAdminPage() {
 
   const onCreate = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
+    if (!canManageUsers) {
+      return;
+    }
+
     setMessage(null);
+    setError(null);
+
+    if (!createForm.name.trim()) {
+      setError("User name is required.");
+      return;
+    }
+
+    if (!isValidEmail(createForm.email)) {
+      setError("Email format is invalid.");
+      return;
+    }
+
+    if (createForm.password.length < 8) {
+      setError("Temporary password must be at least 8 characters.");
+      return;
+    }
+
+    const selectedOfficeId = createForm.officeId || officeId;
+    if (!selectedOfficeId) {
+      setError("Office is required.");
+      return;
+    }
 
     const request: CreateUserRequest = {
       name: createForm.name.trim(),
@@ -159,31 +203,54 @@ export function UsersAdminPage() {
       phoneNumber: createForm.phoneNumber.trim(),
       password: createForm.password,
       role: createForm.role,
-      officeId: createForm.officeId || officeId,
+      officeId: selectedOfficeId,
       maxAssignedSites: parsePositiveInt(createForm.maxAssignedSites),
       specializations: parseSpecializations(createForm.specializations),
     };
 
-    await usersApi.create(request);
-    setCreateForm((current) => ({
-      ...EMPTY_CREATE_FORM,
-      officeId: current.officeId || officeId,
-      role: current.role,
-    }));
-    setMessage("User created.");
-    await loadUsers();
+    setIsCreating(true);
+    try {
+      await usersApi.create(request);
+      setCreateForm((current) => ({
+        ...EMPTY_CREATE_FORM,
+        officeId: current.officeId || officeId,
+        role: current.role,
+      }));
+      setMessage("User created.");
+      await loadUsers();
+    } catch (createError) {
+      setError(getErrorMessage(createError, "Failed to create user."));
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const selectUser = async (userId: string): Promise<void> => {
-    const detail = await usersApi.getById(userId);
-    setSelectedUserId(userId);
-    setSelectedUser(detail);
-    setEditForm(mapUserToEditForm(detail));
+    setError(null);
+    try {
+      const detail = await usersApi.getById(userId);
+      setSelectedUserId(userId);
+      setSelectedUser(detail);
+      setEditForm(mapUserToEditForm(detail));
+    } catch (selectError) {
+      setError(getErrorMessage(selectError, "Failed to load user details."));
+    }
   };
 
   const onSaveUser = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    if (!selectedUserId) {
+    if (!selectedUserId || !canManageUsers) {
+      return;
+    }
+
+    setError(null);
+    if (!editForm.name.trim()) {
+      setError("User name is required.");
+      return;
+    }
+
+    if (!editForm.phoneNumber.trim()) {
+      setError("Phone number is required.");
       return;
     }
 
@@ -194,46 +261,89 @@ export function UsersAdminPage() {
       specializations: parseSpecializations(editForm.specializations),
     };
 
-    await usersApi.update(selectedUserId, request);
-    setMessage("User updated.");
-    await selectUser(selectedUserId);
-    await loadUsers();
+    setIsSaving(true);
+    try {
+      await usersApi.update(selectedUserId, request);
+      setMessage("User updated.");
+      await selectUser(selectedUserId);
+      await loadUsers();
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Failed to update user."));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const onChangeRole = async (): Promise<void> => {
-    if (!selectedUserId) {
+    if (!selectedUserId || !canManageUsers) {
       return;
     }
 
-    await usersApi.changeRole(selectedUserId, editForm.newRole);
-    setMessage("User role updated.");
-    await selectUser(selectedUserId);
-    await loadUsers();
+    setError(null);
+    setIsChangingRole(true);
+    try {
+      await usersApi.changeRole(selectedUserId, editForm.newRole);
+      setMessage("User role updated.");
+      await selectUser(selectedUserId);
+      await loadUsers();
+    } catch (changeError) {
+      setError(getErrorMessage(changeError, "Failed to update user role."));
+    } finally {
+      setIsChangingRole(false);
+    }
   };
 
-  const runAction = async (action: () => Promise<void>, successMessage: string): Promise<void> => {
-    await action();
-    setMessage(successMessage);
-    await loadUsers();
-    if (selectedUserId) {
-      await selectUser(selectedUserId);
+  const runAction = async (
+    userId: string,
+    action: () => Promise<void>,
+    successMessage: string,
+  ): Promise<void> => {
+    if (!canManageUsers) {
+      return;
+    }
+
+    setError(null);
+    setRunningActionUserId(userId);
+    try {
+      await action();
+      setMessage(successMessage);
+      await loadUsers();
+      if (selectedUserId) {
+        await selectUser(selectedUserId);
+      }
+    } catch (actionError) {
+      setError(getErrorMessage(actionError, "User action failed."));
+    } finally {
+      setRunningActionUserId(null);
     }
   };
 
   const onDelete = async (userId: string): Promise<void> => {
+    if (!canManageUsers) {
+      return;
+    }
+
     const confirmed = window.confirm("Delete this user?");
     if (!confirmed) {
       return;
     }
 
-    await usersApi.delete(userId);
-    setMessage("User deleted.");
-    if (selectedUserId === userId) {
-      setSelectedUserId(null);
-      setSelectedUser(null);
-      setEditForm(EMPTY_EDIT_FORM);
+    setError(null);
+    setRunningActionUserId(userId);
+    try {
+      await usersApi.delete(userId);
+      setMessage("User deleted.");
+      if (selectedUserId === userId) {
+        setSelectedUserId(null);
+        setSelectedUser(null);
+        setEditForm(EMPTY_EDIT_FORM);
+      }
+      await loadUsers();
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError, "Failed to delete user."));
+    } finally {
+      setRunningActionUserId(null);
     }
-    await loadUsers();
   };
 
   return (
@@ -329,33 +439,46 @@ export function UsersAdminPage() {
                     <button type="button" className="btn-outline" onClick={() => void selectUser(user.id)}>
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() => void runAction(() => usersApi.unlockAccount(user.id), "User unlocked.")}
-                    >
-                      Unlock
-                    </button>
-                    {user.isActive ? (
+                    {canManageUsers ? (
                       <button
                         type="button"
                         className="btn-outline"
-                        onClick={() => void runAction(() => usersApi.deactivate(user.id), "User deactivated.")}
+                        disabled={runningActionUserId !== null}
+                        onClick={() => void runAction(user.id, () => usersApi.unlockAccount(user.id), "User unlocked.")}
                       >
-                        Deactivate
+                        {runningActionUserId === user.id ? "Working..." : "Unlock"}
                       </button>
-                    ) : (
+                    ) : null}
+                    {canManageUsers && user.isActive ? (
                       <button
                         type="button"
                         className="btn-outline"
-                        onClick={() => void runAction(() => usersApi.activate(user.id), "User activated.")}
+                        disabled={runningActionUserId !== null}
+                        onClick={() => void runAction(user.id, () => usersApi.deactivate(user.id), "User deactivated.")}
                       >
-                        Activate
+                        {runningActionUserId === user.id ? "Working..." : "Deactivate"}
                       </button>
-                    )}
-                    <button type="button" className="btn-outline danger" onClick={() => void onDelete(user.id)}>
-                      Delete
-                    </button>
+                    ) : null}
+                    {canManageUsers && !user.isActive ? (
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        disabled={runningActionUserId !== null}
+                        onClick={() => void runAction(user.id, () => usersApi.activate(user.id), "User activated.")}
+                      >
+                        {runningActionUserId === user.id ? "Working..." : "Activate"}
+                      </button>
+                    ) : null}
+                    {canManageUsers ? (
+                      <button
+                        type="button"
+                        className="btn-outline danger"
+                        disabled={runningActionUserId !== null}
+                        onClick={() => void onDelete(user.id)}
+                      >
+                        {runningActionUserId === user.id ? "Deleting..." : "Delete"}
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -370,11 +493,17 @@ export function UsersAdminPage() {
           </table>
         </div>
         <PaginationBar pagination={pagination} onPageChange={setPage} />
+        {!canManageUsers ? (
+          <p className="text-muted">
+            You have view access only. User mutations are hidden because manage permissions are missing.
+          </p>
+        ) : null}
       </article>
 
-      <article className="panel">
-        <h3>Create User</h3>
-        <form className="admin-form-grid" onSubmit={onCreate}>
+      {canManageUsers ? (
+        <article className="panel">
+          <h3>Create User</h3>
+          <form className="admin-form-grid" onSubmit={onCreate}>
           <input
             className="field-input"
             placeholder="Full name"
@@ -441,11 +570,16 @@ export function UsersAdminPage() {
             value={createForm.specializations}
             onChange={(event) => setCreateForm((current) => ({ ...current, specializations: event.target.value }))}
           />
-          <button type="submit" className="btn-primary">
-            Create User
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isCreating || isSaving || isChangingRole || runningActionUserId !== null}
+          >
+            {isCreating ? "Creating..." : "Create User"}
           </button>
-        </form>
-      </article>
+          </form>
+        </article>
+      ) : null}
 
       {selectedUser ? (
         <article className="panel">
@@ -459,50 +593,64 @@ export function UsersAdminPage() {
             <input
               className="field-input"
               value={editForm.name}
+              disabled={!canManageUsers}
               onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
               required
             />
             <input
               className="field-input"
               value={editForm.phoneNumber}
+              disabled={!canManageUsers}
               onChange={(event) => setEditForm((current) => ({ ...current, phoneNumber: event.target.value }))}
               required
             />
             <input
               className="field-input"
               value={editForm.maxAssignedSites}
+              disabled={!canManageUsers}
               onChange={(event) => setEditForm((current) => ({ ...current, maxAssignedSites: event.target.value }))}
               placeholder="Max assigned sites"
             />
             <input
               className="field-input"
               value={editForm.specializations}
+              disabled={!canManageUsers}
               onChange={(event) => setEditForm((current) => ({ ...current, specializations: event.target.value }))}
               placeholder="Specializations (comma separated)"
             />
-            <button type="submit" className="btn-primary">
-              Save User
-            </button>
+            {canManageUsers ? (
+              <button type="submit" className="btn-primary" disabled={isSaving || isChangingRole || runningActionUserId !== null}>
+                {isSaving ? "Saving..." : "Save User"}
+              </button>
+            ) : null}
           </form>
-          <div className="admin-form-grid">
-            <select
-              className="field-input"
-              value={editForm.newRole}
-              onChange={(event) => setEditForm((current) => ({ ...current, newRole: event.target.value as UserRole }))}
-            >
-              {USER_ROLES.map((roleItem) => (
-                <option key={roleItem} value={roleItem}>
-                  {roleItem}
-                </option>
-              ))}
-            </select>
-            <button type="button" className="btn-outline" onClick={() => void onChangeRole()}>
-              Change Role
-            </button>
-          </div>
+          {canManageUsers ? (
+            <div className="admin-form-grid">
+              <select
+                className="field-input"
+                value={editForm.newRole}
+                onChange={(event) => setEditForm((current) => ({ ...current, newRole: event.target.value as UserRole }))}
+              >
+                {USER_ROLES.map((roleItem) => (
+                  <option key={roleItem} value={roleItem}>
+                    {roleItem}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn-outline"
+                disabled={isSaving || isChangingRole || runningActionUserId !== null}
+                onClick={() => void onChangeRole()}
+              >
+                {isChangingRole ? "Updating..." : "Change Role"}
+              </button>
+            </div>
+          ) : null}
         </article>
       ) : null}
 
+      {error ? <p className="text-danger">{error}</p> : null}
       {message ? <p className="text-muted">{message}</p> : null}
     </div>
   );

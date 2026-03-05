@@ -1,16 +1,19 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { AppShell } from "./layout/AppShell";
 import { RequireAuth } from "../core/auth/RequireAuth";
 import { RequirePermission } from "../core/auth/RequirePermission";
+import { RequireAnyPermission } from "../core/auth/RequireAnyPermission";
 import { LoginPage } from "../pages/LoginPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { UnauthorizedPage } from "../pages/UnauthorizedPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { AdminLayoutPage } from "../pages/admin/AdminLayoutPage";
+import { AdminIndexRedirect } from "../pages/admin/AdminIndexRedirect";
 import { OfficesAdminPage } from "../pages/admin/OfficesAdminPage";
 import { UsersAdminPage } from "../pages/admin/UsersAdminPage";
 import { RolesAdminPage } from "../pages/admin/RolesAdminPage";
 import { SettingsAdminPage } from "../pages/admin/SettingsAdminPage";
+import { ADMIN_WORKSPACE_PERMISSIONS, AdminPermissionKeys } from "../features/admin/permissionKeys";
 
 export function AppRouter() {
   return (
@@ -21,12 +24,19 @@ export function AppRouter() {
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
-          <Route path="admin" element={<AdminLayoutPage />}>
-            <Route index element={<Navigate to="offices" replace />} />
+          <Route
+            path="admin"
+            element={(
+              <RequireAnyPermission permissions={ADMIN_WORKSPACE_PERMISSIONS}>
+                <AdminLayoutPage />
+              </RequireAnyPermission>
+            )}
+          >
+            <Route index element={<AdminIndexRedirect />} />
             <Route
               path="offices"
               element={(
-                <RequirePermission permission="offices.manage">
+                <RequirePermission permission={AdminPermissionKeys.officesManage}>
                   <OfficesAdminPage />
                 </RequirePermission>
               )}
@@ -34,7 +44,7 @@ export function AppRouter() {
             <Route
               path="users"
               element={(
-                <RequirePermission permission="users.view">
+                <RequirePermission permission={AdminPermissionKeys.usersView}>
                   <UsersAdminPage />
                 </RequirePermission>
               )}
@@ -42,7 +52,7 @@ export function AppRouter() {
             <Route
               path="roles"
               element={(
-                <RequirePermission permission="settings.edit">
+                <RequirePermission permission={AdminPermissionKeys.settingsEdit}>
                   <RolesAdminPage />
                 </RequirePermission>
               )}
@@ -50,7 +60,7 @@ export function AppRouter() {
             <Route
               path="settings"
               element={(
-                <RequirePermission permission="settings.edit">
+                <RequirePermission permission={AdminPermissionKeys.settingsEdit}>
                   <SettingsAdminPage />
                 </RequirePermission>
               )}

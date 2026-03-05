@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
+import { getErrorMessage } from "../../shared/errors/errorMessage";
 import {
   officesApi,
   type CreateOfficeRequest,
@@ -48,6 +49,67 @@ function toOptionalNumber(value: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+function isValidEmail(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+function isValidLatitude(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) && parsed >= -90 && parsed <= 90;
+}
+
+function isValidLongitude(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) && parsed >= -180 && parsed <= 180;
+}
+
+function validateOfficeForm(form: OfficeFormState, requireCode: boolean): string | null {
+  if (requireCode && !form.code.trim()) {
+    return "Office code is required.";
+  }
+
+  if (!form.name.trim()) {
+    return "Office name is required.";
+  }
+
+  if (!form.region.trim()) {
+    return "Region is required.";
+  }
+
+  if (!form.city.trim()) {
+    return "City is required.";
+  }
+
+  if (!isValidEmail(form.contactEmail)) {
+    return "Contact email format is invalid.";
+  }
+
+  if (!isValidLatitude(form.latitude)) {
+    return "Latitude must be a valid number between -90 and 90.";
+  }
+
+  if (!isValidLongitude(form.longitude)) {
+    return "Longitude must be a valid number between -180 and 180.";
+  }
+
+  return null;
+}
+
 function mapDetailToForm(detail: OfficeDetailDto): OfficeFormState {
   return {
     code: detail.code,
@@ -71,6 +133,11 @@ export function OfficesAdminPage() {
   const [onlyActive, setOnlyActive] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSavingOffice, setIsSavingOffice] = useState(false);
+  const [isSavingContact, setIsSavingContact] = useState(false);
+  const [deletingOfficeId, setDeletingOfficeId] = useState<string | null>(null);
 
   const [createForm, setCreateForm] = useState<OfficeFormState>(EMPTY_OFFICE_FORM);
   const [selectedOfficeId, setSelectedOfficeId] = useState<string | null>(null);
@@ -79,6 +146,7 @@ export function OfficesAdminPage() {
 
   const loadOffices = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await officesApi.list({
         page,
@@ -89,6 +157,8 @@ export function OfficesAdminPage() {
       });
       setOffices(response.items);
       setPagination(response.pagination);
+    } catch (loadError) {
+      setError(getErrorMessage(loadError, "Failed to load offices."));
     } finally {
       setIsLoading(false);
     }
@@ -99,14 +169,26 @@ export function OfficesAdminPage() {
   }, [loadOffices]);
 
   const loadOfficeDetail = useCallback(async (officeId: string) => {
-    const detail = await officesApi.getById(officeId);
-    setSelectedOffice(detail);
-    setEditForm(mapDetailToForm(detail));
+    setError(null);
+    try {
+      const detail = await officesApi.getById(officeId);
+      setSelectedOffice(detail);
+      setEditForm(mapDetailToForm(detail));
+    } catch (loadError) {
+      setError(getErrorMessage(loadError, "Failed to load office details."));
+    }
   }, []);
 
   const onCreate = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setMessage(null);
+    setError(null);
+
+    const validationError = validateOfficeForm(createForm, true);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
     const request: CreateOfficeRequest = {
       code: createForm.code.trim(),
@@ -125,15 +207,29 @@ export function OfficesAdminPage() {
       contactEmail: createForm.contactEmail.trim() || undefined,
     };
 
-    await officesApi.create(request);
-    setCreateForm(EMPTY_OFFICE_FORM);
-    setMessage("Office created.");
-    await loadOffices();
+    setIsCreating(true);
+    try {
+      await officesApi.create(request);
+      setCreateForm(EMPTY_OFFICE_FORM);
+      setMessage("Office created.");
+      await loadOffices();
+    } catch (createError) {
+      setError(getErrorMessage(createError, "Failed to create office."));
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const onUpdateOffice = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     if (!selectedOfficeId) {
+      return;
+    }
+
+    setError(null);
+    const validationError = validateOfficeForm(editForm, false);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -150,14 +246,27 @@ export function OfficesAdminPage() {
       longitude: toOptionalNumber(editForm.longitude),
     };
 
-    await officesApi.update(selectedOfficeId, request);
-    setMessage("Office updated.");
-    await loadOffices();
-    await loadOfficeDetail(selectedOfficeId);
+    setIsSavingOffice(true);
+    try {
+      await officesApi.update(selectedOfficeId, request);
+      setMessage("Office updated.");
+      await loadOffices();
+      await loadOfficeDetail(selectedOfficeId);
+    } catch (updateError) {
+      setError(getErrorMessage(updateError, "Failed to update office."));
+    } finally {
+      setIsSavingOffice(false);
+    }
   };
 
   const onUpdateContact = async (): Promise<void> => {
     if (!selectedOfficeId) {
+      return;
+    }
+
+    setError(null);
+    if (!isValidEmail(editForm.contactEmail)) {
+      setError("Contact email format is invalid.");
       return;
     }
 
@@ -167,9 +276,16 @@ export function OfficesAdminPage() {
       contactEmail: editForm.contactEmail.trim() || undefined,
     };
 
-    await officesApi.updateContact(selectedOfficeId, request);
-    setMessage("Office contact updated.");
-    await loadOfficeDetail(selectedOfficeId);
+    setIsSavingContact(true);
+    try {
+      await officesApi.updateContact(selectedOfficeId, request);
+      setMessage("Office contact updated.");
+      await loadOfficeDetail(selectedOfficeId);
+    } catch (updateError) {
+      setError(getErrorMessage(updateError, "Failed to update office contact."));
+    } finally {
+      setIsSavingContact(false);
+    }
   };
 
   const onDelete = async (officeId: string): Promise<void> => {
@@ -178,14 +294,22 @@ export function OfficesAdminPage() {
       return;
     }
 
-    await officesApi.remove(officeId);
-    setMessage("Office deleted.");
-    if (selectedOfficeId === officeId) {
-      setSelectedOfficeId(null);
-      setSelectedOffice(null);
-      setEditForm(EMPTY_OFFICE_FORM);
+    setError(null);
+    setDeletingOfficeId(officeId);
+    try {
+      await officesApi.remove(officeId);
+      setMessage("Office deleted.");
+      if (selectedOfficeId === officeId) {
+        setSelectedOfficeId(null);
+        setSelectedOffice(null);
+        setEditForm(EMPTY_OFFICE_FORM);
+      }
+      await loadOffices();
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError, "Failed to delete office."));
+    } finally {
+      setDeletingOfficeId(null);
     }
-    await loadOffices();
   };
 
   return (
@@ -232,6 +356,7 @@ export function OfficesAdminPage() {
                     <button
                       type="button"
                       className="btn-outline"
+                      disabled={deletingOfficeId !== null || isSavingOffice || isSavingContact}
                       onClick={() => {
                         setSelectedOfficeId(office.id);
                         void loadOfficeDetail(office.id);
@@ -242,9 +367,10 @@ export function OfficesAdminPage() {
                     <button
                       type="button"
                       className="btn-outline danger"
+                      disabled={deletingOfficeId !== null || isSavingOffice || isSavingContact}
                       onClick={() => void onDelete(office.id)}
                     >
-                      Delete
+                      {deletingOfficeId === office.id ? "Deleting..." : "Delete"}
                     </button>
                   </td>
                 </tr>
@@ -335,8 +461,8 @@ export function OfficesAdminPage() {
             value={createForm.contactEmail}
             onChange={(event) => setCreateForm((current) => ({ ...current, contactEmail: event.target.value }))}
           />
-          <button type="submit" className="btn-primary">
-            Create Office
+          <button type="submit" className="btn-primary" disabled={isCreating || isSavingOffice || isSavingContact}>
+            {isCreating ? "Creating..." : "Create Office"}
           </button>
         </form>
       </article>
@@ -386,8 +512,8 @@ export function OfficesAdminPage() {
               onChange={(event) => setEditForm((current) => ({ ...current, longitude: event.target.value }))}
               placeholder="Longitude"
             />
-            <button type="submit" className="btn-primary">
-              Save Office
+            <button type="submit" className="btn-primary" disabled={isSavingOffice || isSavingContact || deletingOfficeId !== null}>
+              {isSavingOffice ? "Saving..." : "Save Office"}
             </button>
           </form>
           <div className="admin-form-grid">
@@ -409,13 +535,19 @@ export function OfficesAdminPage() {
               onChange={(event) => setEditForm((current) => ({ ...current, contactEmail: event.target.value }))}
               placeholder="Contact email"
             />
-            <button type="button" className="btn-outline" onClick={() => void onUpdateContact()}>
-              Save Contact
+            <button
+              type="button"
+              className="btn-outline"
+              disabled={isSavingOffice || isSavingContact || deletingOfficeId !== null}
+              onClick={() => void onUpdateContact()}
+            >
+              {isSavingContact ? "Saving..." : "Save Contact"}
             </button>
           </div>
         </article>
       ) : null}
 
+      {error ? <p className="text-danger">{error}</p> : null}
       {message ? <p className="text-muted">{message}</p> : null}
     </div>
   );
