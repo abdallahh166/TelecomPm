@@ -11,6 +11,7 @@ These documents are intended to match current code behavior:
 - `docs/Domain-Doc.md`
 - `docs/Operational-Workflow.md`
 - `docs/Frontend-Reporting-API-Contract-and-Git-Plan.md`
+- `docs/TowerOps-Frontend-Implementation-Phases.md`
 - `docs/Backend-Auto-Discovery-Report.md`
 - `docs/Business-Confirmation-Checklist.md`
 - `docs/CQRS-Inventory.md`
@@ -52,6 +53,7 @@ These remain useful for context but can diverge from runtime implementation:
 
 ## Dataset and Audit Inputs
 - `docs/excell/*` (field Excel templates)
+- `docs/branding/towerops-branding-complete.html` (brand identity source artifact)
 - `docs/Excel-Domain-Gap-Report.md`
 - `docs/Core-Business-Definitions-Excel-Review.md`
 - `docs/Core-Business-Definitions-Workbook-Audit.md`
