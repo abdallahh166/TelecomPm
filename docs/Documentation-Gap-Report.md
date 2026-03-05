@@ -46,7 +46,6 @@ This report captures documentation areas that still need follow-up to keep docs 
 - Remaining gap: a small set of list endpoints still return arrays (`/api/sites/maintenance`, `/api/materials/low-stock/{officeId}`).
 - Impact: Low.
 - Recommendation: Keep the remaining migration in backlog as non-blocker.
-
 ### 5) Business confirmations and implementation closure
 - Status: BC-05, BC-06, and BC-08 are implemented and merged.
 - Impact: Low (remaining work is operational rollout validation, not implementation closure).
