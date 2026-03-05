@@ -8,6 +8,10 @@ export default {
     (message) => subjectOf(message) === "Ci/fix iis file locks (#82)",
     (message) => subjectOf(message) === "Develop (#84)",
     (message) => subjectOf(message) === "Docs/frontend feedback remediation clean (#92)",
+    (message) =>
+      /^Docs\/frontend feedback remediation clean \(#\d+\)$/.test(
+        subjectOf(message),
+      ),
   ],
   rules: {
     "type-enum": [
