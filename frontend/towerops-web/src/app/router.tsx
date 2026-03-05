@@ -14,6 +14,15 @@ import { UsersAdminPage } from "../pages/admin/UsersAdminPage";
 import { RolesAdminPage } from "../pages/admin/RolesAdminPage";
 import { SettingsAdminPage } from "../pages/admin/SettingsAdminPage";
 import { ADMIN_WORKSPACE_PERMISSIONS, AdminPermissionKeys } from "../features/admin/permissionKeys";
+import { OperationsLayoutPage } from "../pages/operations/OperationsLayoutPage";
+import { OperationsIndexRedirect } from "../pages/operations/OperationsIndexRedirect";
+import { SitesOperationsPage } from "../pages/operations/SitesOperationsPage";
+import { AssetsOperationsPage } from "../pages/operations/AssetsOperationsPage";
+import { MaterialsOperationsPage } from "../pages/operations/MaterialsOperationsPage";
+import {
+  OPERATIONS_WORKSPACE_PERMISSIONS,
+  OperationsPermissionKeys,
+} from "../features/operations/permissionKeys";
 
 export function AppRouter() {
   return (
@@ -62,6 +71,40 @@ export function AppRouter() {
               element={(
                 <RequirePermission permission={AdminPermissionKeys.settingsEdit}>
                   <SettingsAdminPage />
+                </RequirePermission>
+              )}
+            />
+          </Route>
+          <Route
+            path="operations"
+            element={(
+              <RequireAnyPermission permissions={OPERATIONS_WORKSPACE_PERMISSIONS}>
+                <OperationsLayoutPage />
+              </RequireAnyPermission>
+            )}
+          >
+            <Route index element={<OperationsIndexRedirect />} />
+            <Route
+              path="sites"
+              element={(
+                <RequirePermission permission={OperationsPermissionKeys.sitesView}>
+                  <SitesOperationsPage />
+                </RequirePermission>
+              )}
+            />
+            <Route
+              path="assets"
+              element={(
+                <RequirePermission permission={OperationsPermissionKeys.sitesView}>
+                  <AssetsOperationsPage />
+                </RequirePermission>
+              )}
+            />
+            <Route
+              path="materials"
+              element={(
+                <RequirePermission permission={OperationsPermissionKeys.materialsView}>
+                  <MaterialsOperationsPage />
                 </RequirePermission>
               )}
             />
