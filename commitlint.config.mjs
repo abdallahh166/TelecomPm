@@ -5,6 +5,7 @@ export default {
     // Legacy squash/merge subjects that already exist in history.
     (message) => /^Ci\/fix iis file locks \(#82\)$/.test(message),
     (message) => /^Develop \(#84\)$/.test(message),
+    (message) => /^Docs\/frontend feedback remediation clean \(#92\)$/.test(message),
   ],
   rules: {
     "type-enum": [
