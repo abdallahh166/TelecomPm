@@ -215,7 +215,6 @@
   .admin-tabs button {
     @apply inline-flex h-10 items-center justify-center rounded-xl border border-d-border bg-d-surface2 px-4 text-sm font-medium text-d-muted transition hover:border-blue/30 hover:text-d-text;
   }
-
   .admin-tabs a.active {
     @apply border-blue/30 bg-blue/10 text-blue;
   }
@@ -253,7 +252,6 @@
   .data-list dd {
     @apply m-0 text-sm text-d-text;
   }
-
   .table-wrap {
     @apply overflow-x-auto rounded-2xl border border-d-border bg-d-surface2/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)];
   }
