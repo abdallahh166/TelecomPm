@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ApiRequestError } from "../core/http/apiError";
-import { useAuth } from "../core/auth/AuthContext";
+import { useAuth } from "../features/auth/context/AuthContext";
 
 type LocationState = {
   from?: {
@@ -137,3 +137,4 @@ export function LoginPage() {
     </div>
   );
 }
+

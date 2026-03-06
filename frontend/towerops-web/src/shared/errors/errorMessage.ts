@@ -1,4 +1,4 @@
-import { ApiRequestError } from "../../core/http/apiError";
+import { ApiRequestError } from "../../services/errorAdapter";
 
 function flattenErrors(errors: Record<string, string[]> | undefined): string[] {
   if (!errors) {
@@ -11,7 +11,7 @@ function flattenErrors(errors: Record<string, string[]> | undefined): string[] {
     .filter(Boolean);
 }
 
-export function getErrorMessage(error: unknown, fallback: string): string {
+export function getErrorMessage(error: unknown, fallback = "An error occurred."): string {
   if (!(error instanceof ApiRequestError)) {
     return fallback;
   }

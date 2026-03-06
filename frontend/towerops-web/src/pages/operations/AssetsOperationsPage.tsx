@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import { ASSET_TYPE_OPTIONS } from "../../features/operations/enumOptions";
 import {
   assetsApi,
@@ -486,3 +486,4 @@ export function AssetsOperationsPage() {
     </div>
   );
 }
+

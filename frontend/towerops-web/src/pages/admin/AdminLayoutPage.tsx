@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import { AdminPermissionKeys } from "../../features/admin/permissionKeys";
 
 export function AdminLayoutPage() {
@@ -47,3 +47,4 @@ export function AdminLayoutPage() {
     </section>
   );
 }
+

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import { ADMIN_WORKSPACE_PERMISSIONS, hasAnyPermission } from "../../features/admin/permissionKeys";
 import { OPERATIONS_WORKSPACE_PERMISSIONS } from "../../features/operations/permissionKeys";
 
@@ -40,3 +40,4 @@ export function AppShell() {
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import { OperationsPermissionKeys } from "../../features/operations/permissionKeys";
 
 export function OperationsLayoutPage() {
@@ -21,6 +21,16 @@ export function OperationsLayoutPage() {
       label: "Materials",
       isVisible: hasPermission(OperationsPermissionKeys.materialsView),
     },
+    {
+      to: "visits",
+      label: "Visits",
+      isVisible: hasPermission(OperationsPermissionKeys.visitsView),
+    },
+    {
+      to: "work-orders",
+      label: "Work Orders",
+      isVisible: hasPermission(OperationsPermissionKeys.workOrdersView),
+    },
   ].filter((tab) => tab.isVisible);
 
   return (
@@ -28,7 +38,7 @@ export function OperationsLayoutPage() {
       <div>
         <h2>Operations Workspace</h2>
         <p className="text-muted">
-          Phase 3 implementation for sites, assets, materials, and import operations.
+          Sites, assets, materials, visits, and work orders.
         </p>
       </div>
       <nav className="admin-tabs">
@@ -42,3 +52,4 @@ export function OperationsLayoutPage() {
     </section>
   );
 }
+

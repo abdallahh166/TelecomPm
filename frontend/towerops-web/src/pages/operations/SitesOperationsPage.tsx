@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import type { OfficeDto } from "../../features/admin/officesApi";
 import { officesApi } from "../../features/admin/officesApi";
@@ -895,3 +895,4 @@ export function SitesOperationsPage() {
     </div>
   );
 }
+

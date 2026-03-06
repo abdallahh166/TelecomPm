@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import {
   AdminPermissionKeys,
   hasAnyPermission,
@@ -27,3 +27,4 @@ export function AdminIndexRedirect() {
 
   return <Navigate to="/unauthorized" replace />;
 }
+

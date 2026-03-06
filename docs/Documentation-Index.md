@@ -18,6 +18,7 @@ These documents are intended to match current code behavior:
 - `docs/Database-Schema-and-ERD.md`
 - `docs/File-Constraints-Matrix.md`
 - `docs/GitHub-Development-and-Production-Runbook.md`
+- `docs/GitHub-Daily-Workflow-Step-by-Step.md`
 - `docs/ops/Incident-Runbook-Startup-Configuration-Failures.md`
 - `docs/ops/Incident-Runbook-Database-Migration-and-Rollback.md`
 - `docs/ops/Incident-Runbook-Sync-Conflict-Replay.md`

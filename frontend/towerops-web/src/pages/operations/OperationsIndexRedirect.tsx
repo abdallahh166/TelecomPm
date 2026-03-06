@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import { OperationsPermissionKeys } from "../../features/operations/permissionKeys";
 
 export function OperationsIndexRedirect() {
@@ -15,3 +15,4 @@ export function OperationsIndexRedirect() {
 
   return <Navigate to="/unauthorized" replace />;
 }
+

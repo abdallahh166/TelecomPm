@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { useAuth } from "../../core/auth/AuthContext";
+import { useAuth } from "../../features/auth/context/AuthContext";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
 import { hasAnyPermission, USER_MANAGEMENT_PERMISSIONS } from "../../features/admin/permissionKeys";
@@ -655,3 +655,4 @@ export function UsersAdminPage() {
     </div>
   );
 }
+
