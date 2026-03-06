@@ -6,9 +6,14 @@ namespace TowerOps.Domain.Specifications.VisitSpecifications;
 
 public sealed class PendingReviewVisitsSpecification : BaseSpecification<Visit>
 {
-    public PendingReviewVisitsSpecification()
+    public PendingReviewVisitsSpecification(int? skip = null, int? take = null)
         : base(v => v.Status == VisitStatus.Submitted && !v.IsDeleted)
     {
         ApplyOrderBy(v => v.CreatedAt);
+
+        if (skip.HasValue && take.HasValue)
+        {
+            ApplyPaging(skip.Value, take.Value);
+        }
     }
 }

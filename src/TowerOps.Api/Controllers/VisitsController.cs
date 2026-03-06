@@ -48,13 +48,20 @@ public sealed class VisitsController : ApiControllerBase
     [HttpGet("pending-reviews")]
     public async Task<IActionResult> GetPendingReviews(
         [FromQuery] Guid? officeId,
-        CancellationToken cancellationToken)
+        [FromQuery(Name = "page")] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken cancellationToken = default)
     {
-        var result = await Mediator.Send(
-            officeId.ToQuery(),
-            cancellationToken);
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = Math.Clamp(pageSize, 1, 100);
 
-        return HandleResult(result);
+        var result = await Mediator.Send(
+            officeId.ToQuery(safePage, safePageSize),
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+            return HandleResult(result);
+
+        return Ok(result.Value.ToPagedResponse());
     }
 
     [HttpGet("scheduled")]
@@ -65,8 +72,10 @@ public sealed class VisitsController : ApiControllerBase
         var result = await Mediator.Send(
             parameters.ToQuery(),
             cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+            return HandleResult(result);
 
-        return HandleResult(result);
+        return Ok(result.Value.ToPagedResponse());
     }
 
     [HttpPost]
