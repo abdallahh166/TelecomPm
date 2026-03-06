@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
 import { getErrorMessage } from "../../shared/errors/errorMessage";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
+import { EmptyState, InlineNotice, LoadingState } from "../../components/Feedback/States";
 import {
   officesApi,
   type CreateOfficeRequest,
@@ -314,6 +316,12 @@ export function OfficesAdminPage() {
 
   return (
     <div className="page">
+      <PageIntro
+        eyebrow="Phase 2"
+        title="Office Workspace"
+        description="Manage office records, active visibility, regional coverage, and contact details used across the operations platform."
+      />
+
       <article className="panel">
         <div className="admin-toolbar">
           <h3>Offices</h3>
@@ -329,7 +337,7 @@ export function OfficesAdminPage() {
             Only active
           </label>
         </div>
-        {isLoading ? <p className="text-muted">Loading offices...</p> : null}
+        {isLoading ? <LoadingState title="Loading offices..." /> : null}
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -377,8 +385,10 @@ export function OfficesAdminPage() {
               ))}
               {!offices.length && !isLoading ? (
                 <tr>
-                  <td colSpan={6} className="text-muted">
-                    No offices found.
+                  <td colSpan={6}>
+                    <EmptyState title="No offices found.">
+                      Try changing the active filter or create a new office.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -547,8 +557,8 @@ export function OfficesAdminPage() {
         </article>
       ) : null}
 
-      {error ? <p className="text-danger">{error}</p> : null}
-      {message ? <p className="text-muted">{message}</p> : null}
+      {error ? <InlineNotice title="Office action failed" tone="error">{error}</InlineNotice> : null}
+      {message ? <InlineNotice title="Office update" tone="success">{message}</InlineNotice> : null}
     </div>
   );
 }

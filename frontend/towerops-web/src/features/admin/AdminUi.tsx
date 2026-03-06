@@ -11,25 +11,29 @@ export function PaginationBar({ pagination, onPageChange }: PaginationBarProps) 
 
   return (
     <div className="pagination-bar">
-      <button
-        type="button"
-        className="btn-outline"
-        onClick={() => onPageChange(Math.max(1, page - 1))}
-        disabled={!pagination.hasPreviousPage}
-      >
-        Prev
-      </button>
       <span className="text-muted">
-        Page {page} / {totalPages} | Total {pagination.total}
+        Page {page} of {totalPages} | Total {pagination.total}
       </span>
-      <button
-        type="button"
-        className="btn-outline"
-        onClick={() => onPageChange(page + 1)}
-        disabled={!pagination.hasNextPage}
-      >
-        Next
-      </button>
+      <div className="table-actions">
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+          disabled={!pagination.hasPreviousPage}
+          aria-label="Go to previous page"
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={() => onPageChange(page + 1)}
+          disabled={!pagination.hasNextPage}
+          aria-label="Go to next page"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

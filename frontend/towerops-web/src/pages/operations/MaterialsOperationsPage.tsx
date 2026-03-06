@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { useAuth } from "../../features/auth/context/AuthContext";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { officesApi, type OfficeDto } from "../../features/admin/officesApi";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
+import { EmptyState, InlineNotice, LoadingState } from "../../components/Feedback/States";
 import {
   MATERIAL_CATEGORY_OPTIONS,
   MATERIAL_UNIT_OPTIONS,
@@ -364,6 +366,12 @@ export function MaterialsOperationsPage() {
 
   return (
     <div className="page">
+      <PageIntro
+        eyebrow="Phase 3"
+        title="Materials Operations"
+        description="Monitor stock levels, create materials, and run add, reserve, and consume actions with clearer inventory visibility."
+      />
+
       <article className="panel">
         <div className="admin-toolbar">
           <h3>Materials</h3>
@@ -399,7 +407,7 @@ export function MaterialsOperationsPage() {
             </button>
           </div>
         </div>
-        {isLoading ? <p className="text-muted">Loading materials...</p> : null}
+        {isLoading ? <LoadingState title="Loading materials..." /> : null}
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -439,8 +447,10 @@ export function MaterialsOperationsPage() {
               ))}
               {!materials.length && !isLoading ? (
                 <tr>
-                  <td colSpan={8} className="text-muted">
-                    No materials found for selected filters.
+                  <td colSpan={8}>
+                    <EmptyState title="No materials found.">
+                      Change the office or stock filter, or create a new material record.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -613,8 +623,10 @@ export function MaterialsOperationsPage() {
               ))}
               {!lowStockMaterials.length ? (
                 <tr>
-                  <td colSpan={4} className="text-muted">
-                    No low-stock records loaded.
+                  <td colSpan={4}>
+                    <EmptyState title="No low-stock records loaded.">
+                      Load the list to review materials that need replenishment.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -623,8 +635,8 @@ export function MaterialsOperationsPage() {
         </div>
       </article>
 
-      {error ? <p className="text-danger">{error}</p> : null}
-      {message ? <p className="text-muted">{message}</p> : null}
+      {error ? <InlineNotice title="Material action failed" tone="error">{error}</InlineNotice> : null}
+      {message ? <InlineNotice title="Material update" tone="success">{message}</InlineNotice> : null}
     </div>
   );
 }

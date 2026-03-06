@@ -5,6 +5,7 @@ import { Input } from "../../../components/Input/Input";
 import { authApi } from "../api/authApi";
 import { ApiRequestError } from "../../../services/errorAdapter";
 import { t } from "../../../i18n";
+import { AuthCard } from "../components/AuthCard";
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
@@ -41,38 +42,47 @@ export function ChangePasswordPage() {
   };
 
   return (
-    <div className="max-w-md">
-      <h2 className="font-display text-2xl font-bold">{t("auth.change.title")}</h2>
-      <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
-        <Input
-          label={t("auth.change.current")}
-          type="password"
-          autoComplete="current-password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          required
-        />
-        <Input
-          label={t("auth.change.new")}
-          type="password"
-          autoComplete="new-password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-        />
-        <Input
-          label={t("auth.change.confirm")}
-          type="password"
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-        {error && <p className="text-red text-sm" role="alert">{error}</p>}
-        <Button type="submit" disabled={isSubmitting}>
-          {t("auth.change.submit")}
-        </Button>
-      </form>
+    <div className="max-w-3xl">
+      <AuthCard
+        className="max-w-xl"
+        title={t("auth.change.title")}
+        description={t("auth.help")}
+      >
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <Input
+            label={t("auth.change.current")}
+            type="password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            required
+          />
+          <Input
+            label={t("auth.change.new")}
+            type="password"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+          />
+          <Input
+            label={t("auth.change.confirm")}
+            type="password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          {error ? (
+            <p className="rounded-xl border border-red/25 bg-red/10 px-4 py-3 text-sm text-red" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <Button type="submit" disabled={isSubmitting}>
+            {t("auth.change.submit")}
+          </Button>
+        </form>
+      </AuthCard>
     </div>
   );
 }

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { PaginationBar } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
 import { getErrorMessage } from "../../shared/errors/errorMessage";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
+import { EmptyState, InlineNotice, LoadingState } from "../../components/Feedback/States";
 import {
   settingsApi,
   type SystemSettingDto,
@@ -149,6 +151,12 @@ export function SettingsAdminPage() {
 
   return (
     <div className="page">
+      <PageIntro
+        eyebrow="Phase 2"
+        title="System Settings"
+        description="Review grouped configuration, edit runtime values, and run connection checks for external services without leaving the admin workspace."
+      />
+
       <article className="panel">
         <div className="admin-toolbar">
           <h3>System Settings</h3>
@@ -179,7 +187,7 @@ export function SettingsAdminPage() {
             </select>
           </div>
         </div>
-        {isLoading ? <p className="text-muted">Loading settings...</p> : null}
+        {isLoading ? <LoadingState title="Loading settings..." /> : null}
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -209,8 +217,10 @@ export function SettingsAdminPage() {
               ))}
               {!settings.length && !isLoading ? (
                 <tr>
-                  <td colSpan={6} className="text-muted">
-                    No settings found.
+                  <td colSpan={6}>
+                    <EmptyState title="No settings found.">
+                      Try changing the sort order or populate settings from the backend seed data.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -309,7 +319,9 @@ export function SettingsAdminPage() {
             </table>
           </div>
         ) : (
-          <p className="text-muted">Run group query to inspect settings.</p>
+          <EmptyState title="No group loaded yet.">
+            Run a group query to inspect related settings together.
+          </EmptyState>
         )}
       </article>
 
@@ -343,8 +355,8 @@ export function SettingsAdminPage() {
         </div>
       </article>
 
-      {error ? <p className="text-danger">{error}</p> : null}
-      {message ? <p className="text-muted">{message}</p> : null}
+      {error ? <InlineNotice title="Settings action failed" tone="error">{error}</InlineNotice> : null}
+      {message ? <InlineNotice title="Settings update" tone="success">{message}</InlineNotice> : null}
     </div>
   );
 }

@@ -236,3 +236,62 @@ git checkout <branch-name>
 - Never force push shared branches unless explicitly approved.
 - Never run destructive commands like `git reset --hard` unless explicitly approved.
 - Keep PRs small and focused (easier review, fewer conflicts).
+
+---
+
+## 12) After Merge to `develop` (every time)
+Do this after each PR merge into `develop`:
+
+1. Confirm checks are green on `develop` (backend/frontend/commitlint).
+2. Deploy `develop` to staging (if not automatic).
+3. Run smoke tests for the changed area.
+4. If issue found, open a fix branch from `develop` and patch fast.
+
+Why this is needed:
+- `develop` is the integration branch. It must stay stable for the whole team.
+- Staging is where we catch integration bugs before production.
+- Fast smoke tests reduce risk and shorten feedback loops.
+
+---
+
+## 13) Release to `main` (not after every merge)
+Do **not** create a `develop -> main` PR after every small merge.
+
+Release to `main` when:
+- A planned release window is reached (for example weekly).
+- Required features are complete and tested.
+- Staging is stable and Product/QA sign off.
+
+Why this is needed:
+- `main` is production truth; it should move in controlled batches.
+- Batched releases reduce deployment noise and rollback complexity.
+- Clear release gates improve reliability and auditability.
+
+---
+
+## Why Each Step Exists (engineering reason)
+Use this to understand the value behind the process.
+
+| Step | Why it exists | If skipped |
+|---|---|---|
+| Update `develop` first | Start from latest team baseline | Conflicts, stale code, broken assumptions |
+| Create feature branch | Isolate your work safely | Risky direct edits on shared branch |
+| Run lint/build/tests before commit | Catch issues early on your machine | CI failures and slow PR cycle |
+| Conventional commit message | Enables commitlint and readable history | PR checks fail, unclear history |
+| Open PR to `develop` | Review + CI gate before integration | Bugs/security issues can slip in |
+| Wait for checks | Automated quality control | Unstable code merged |
+| Resolve conflicts correctly | Keep both sides of code changes safe | Lost code or accidental regressions |
+| Smoke test after merge to `develop` | Validate integration in staging-like flow | Hidden runtime issues |
+| Release `develop -> main` by cadence | Controlled production changes | Noisy releases, hard rollback |
+
+---
+
+## Mental Model (easy to remember)
+- `feature/*` = your private work room.
+- `develop` = team integration room.
+- `main` = production room.
+
+Rule:
+- Build in `feature/*`.
+- Integrate in `develop`.
+- Release from `develop` to `main` with approval.
