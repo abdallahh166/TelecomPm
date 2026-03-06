@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "../../features/auth/context/AuthContext";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
+import { EmptyState, InlineNotice, LoadingState } from "../../components/Feedback/States";
 import type { OfficeDto } from "../../features/admin/officesApi";
 import { officesApi } from "../../features/admin/officesApi";
 import { usersApi, type UserDto } from "../../features/admin/usersApi";
@@ -500,6 +502,12 @@ export function SitesOperationsPage() {
 
   return (
     <div className="page">
+      <PageIntro
+        eyebrow="Phase 3"
+        title="Sites Operations"
+        description="Browse office sites, create new records, inspect maintenance candidates, and manage ownership and assignment details in a cleaner operations view."
+      />
+
       <article className="panel">
         <div className="admin-toolbar">
           <h3>Sites</h3>
@@ -552,7 +560,7 @@ export function SitesOperationsPage() {
           </div>
         </div>
 
-        {isLoading ? <p className="text-muted">Loading sites...</p> : null}
+        {isLoading ? <LoadingState title="Loading sites..." /> : null}
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -590,8 +598,10 @@ export function SitesOperationsPage() {
               ))}
               {!sites.length && !isLoading ? (
                 <tr>
-                  <td colSpan={8} className="text-muted">
-                    No sites found for selected filters.
+                  <td colSpan={8}>
+                    <EmptyState title="No sites found.">
+                      Adjust the office, status, or complexity filters to broaden results.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -744,8 +754,10 @@ export function SitesOperationsPage() {
               ))}
               {!maintenanceSites.length ? (
                 <tr>
-                  <td colSpan={4} className="text-muted">
-                    No maintenance sites loaded.
+                  <td colSpan={4}>
+                    <EmptyState title="No maintenance sites loaded.">
+                      Run the maintenance query to inspect sites that need attention.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -890,8 +902,8 @@ export function SitesOperationsPage() {
         </article>
       ) : null}
 
-      {error ? <p className="text-danger">{error}</p> : null}
-      {message ? <p className="text-muted">{message}</p> : null}
+      {error ? <InlineNotice title="Site action failed" tone="error">{error}</InlineNotice> : null}
+      {message ? <InlineNotice title="Site update" tone="success">{message}</InlineNotice> : null}
     </div>
   );
 }

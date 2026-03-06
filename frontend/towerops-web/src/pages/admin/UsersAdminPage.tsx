@@ -3,6 +3,8 @@ import { useAuth } from "../../features/auth/context/AuthContext";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
 import { hasAnyPermission, USER_MANAGEMENT_PERMISSIONS } from "../../features/admin/permissionKeys";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
+import { EmptyState, InlineNotice, LoadingState } from "../../components/Feedback/States";
 import { officesApi, type OfficeDto } from "../../features/admin/officesApi";
 import {
   USER_ROLES,
@@ -348,6 +350,12 @@ export function UsersAdminPage() {
 
   return (
     <div className="page">
+      <PageIntro
+        eyebrow="Phase 2"
+        title="User Administration"
+        description="Search users by office or role, review account state, and manage lifecycle actions from a single responsive workspace."
+      />
+
       <article className="panel">
         <div className="admin-toolbar">
           <h3>Users</h3>
@@ -411,7 +419,7 @@ export function UsersAdminPage() {
           </div>
         </div>
 
-        {isLoading ? <p className="text-muted">Loading users...</p> : null}
+        {isLoading ? <LoadingState title="Loading users..." /> : null}
 
         <div className="table-wrap">
           <table className="admin-table">
@@ -484,8 +492,10 @@ export function UsersAdminPage() {
               ))}
               {!users.length && !isLoading ? (
                 <tr>
-                  <td colSpan={6} className="text-muted">
-                    No users found for current filter.
+                  <td colSpan={6}>
+                    <EmptyState title="No users found.">
+                      Try another role, office, or active-state filter.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -494,9 +504,9 @@ export function UsersAdminPage() {
         </div>
         <PaginationBar pagination={pagination} onPageChange={setPage} />
         {!canManageUsers ? (
-          <p className="text-muted">
-            You have view access only. User mutations are hidden because manage permissions are missing.
-          </p>
+          <EmptyState title="View-only access">
+            User mutations are hidden because manage permissions are missing.
+          </EmptyState>
         ) : null}
       </article>
 
@@ -650,8 +660,8 @@ export function UsersAdminPage() {
         </article>
       ) : null}
 
-      {error ? <p className="text-danger">{error}</p> : null}
-      {message ? <p className="text-muted">{message}</p> : null}
+      {error ? <InlineNotice title="User action failed" tone="error">{error}</InlineNotice> : null}
+      {message ? <InlineNotice title="User update" tone="success">{message}</InlineNotice> : null}
     </div>
   );
 }

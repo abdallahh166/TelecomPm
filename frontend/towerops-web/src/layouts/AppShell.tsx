@@ -9,39 +9,46 @@ export function AppShell() {
   const { session, logout } = useAuth();
 
   return (
-    <div className="min-h-screen grid grid-rows-[auto_auto_1fr] bg-d-bg text-d-text font-sans">
-      <header className="px-4 py-3 border-b border-d-border bg-navy/90 backdrop-blur-sm flex flex-wrap justify-between items-center gap-3">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="font-display font-black text-3xl tracking-tight">
-            Tower<span className="text-blue">Ops</span>
-          </h1>
-          <p className="text-xs text-d-muted font-mono">{t("app.tagline")}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right text-sm border border-d-border rounded-lg px-2.5 py-1.5 bg-d-surface2/80">
-            <div>{session?.email}</div>
-            <div className="text-d-muted text-xs">{session?.role}</div>
+    <div className="min-h-screen bg-d-bg text-d-text font-sans">
+      <header className="sticky top-0 z-40 border-b border-d-border bg-navy/90 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl">
+              Tower<span className="text-blue">Ops</span>
+            </h1>
+            <p className="max-w-[42rem] font-mono text-[11px] uppercase tracking-[1.4px] text-d-muted">
+              {t("app.tagline")}
+            </p>
           </div>
-          <Button variant="outline" onClick={() => void logout()}>
-            {t("nav.logout")}
-          </Button>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="rounded-xl border border-d-border bg-d-surface2/80 px-3 py-2 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+              <div className="truncate">{session?.email}</div>
+              <div className="text-xs text-d-muted">{session?.role}</div>
+            </div>
+            <Button variant="outline" onClick={() => void logout()}>
+              {t("nav.logout")}
+            </Button>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-7xl px-4 pb-3 sm:px-6 lg:px-8">
+          <nav className="flex gap-2 overflow-x-auto">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium transition ${
+                  isActive
+                    ? "border-blue/30 bg-blue/10 text-blue"
+                    : "border-d-border bg-d-surface2 text-d-muted hover:text-d-text"
+                }`
+              }
+            >
+              {t("nav.dashboard")}
+            </NavLink>
+          </nav>
         </div>
       </header>
-      <nav className="px-4 border-b border-d-border bg-navy/70 flex gap-1">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `font-mono text-xs px-3 py-3 border-b-2 transition-colors ${
-              isActive
-                ? "text-blue border-blue"
-                : "text-d-muted border-transparent hover:text-d-text"
-            }`
-          }
-        >
-          {t("nav.dashboard")}
-        </NavLink>
-      </nav>
-      <main className="p-4">
+      <main className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
         <Outlet />
       </main>
     </div>

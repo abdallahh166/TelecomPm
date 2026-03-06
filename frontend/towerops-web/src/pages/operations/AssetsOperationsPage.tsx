@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../../features/auth/context/AuthContext";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
+import { EmptyState, InlineNotice, LoadingState } from "../../components/Feedback/States";
 import { ASSET_TYPE_OPTIONS } from "../../features/operations/enumOptions";
 import {
   assetsApi,
@@ -273,6 +275,12 @@ export function AssetsOperationsPage() {
 
   return (
     <div className="page">
+      <PageIntro
+        eyebrow="Phase 3"
+        title="Asset Inventory"
+        description="Look up site assets, inspect warranty timelines, and manage registration, service, fault, and replacement actions from one view."
+      />
+
       <article className="panel">
         <h3>Asset Inventory</h3>
         <div className="admin-toolbar">
@@ -295,6 +303,7 @@ export function AssetsOperationsPage() {
             Lookup Asset
           </button>
         </div>
+        {isLoadingList ? <LoadingState title="Loading site assets..." /> : null}
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -324,8 +333,10 @@ export function AssetsOperationsPage() {
               ))}
               {!assets.length ? (
                 <tr>
-                  <td colSpan={6} className="text-muted">
-                    No assets loaded.
+                  <td colSpan={6}>
+                    <EmptyState title="No assets loaded.">
+                      Load site assets or search for a specific asset code.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -481,8 +492,8 @@ export function AssetsOperationsPage() {
         </p>
       </article>
 
-      {error ? <p className="text-danger">{error}</p> : null}
-      {message ? <p className="text-muted">{message}</p> : null}
+      {error ? <InlineNotice title="Asset action failed" tone="error">{error}</InlineNotice> : null}
+      {message ? <InlineNotice title="Asset update" tone="success">{message}</InlineNotice> : null}
     </div>
   );
 }

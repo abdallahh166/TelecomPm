@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PaginationBar, StatusBadge } from "../../features/admin/AdminUi";
 import { defaultPagination } from "../../features/admin/common";
 import { getErrorMessage } from "../../shared/errors/errorMessage";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
+import { EmptyState, InlineNotice, LoadingState } from "../../components/Feedback/States";
 import {
   rolesApi,
   type CreateRoleRequest,
@@ -219,9 +221,15 @@ export function RolesAdminPage() {
 
   return (
     <div className="page">
+      <PageIntro
+        eyebrow="Phase 2"
+        title="Role Management"
+        description="Define platform roles, activation state, and permission bundles used by the frontend route and action guards."
+      />
+
       <article className="panel">
         <h3>Roles</h3>
-        {isLoading ? <p className="text-muted">Loading roles...</p> : null}
+        {isLoading ? <LoadingState title="Loading roles..." /> : null}
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -265,8 +273,10 @@ export function RolesAdminPage() {
               ))}
               {!roles.length && !isLoading ? (
                 <tr>
-                  <td colSpan={6} className="text-muted">
-                    No roles found.
+                  <td colSpan={6}>
+                    <EmptyState title="No roles found.">
+                      Create a role or adjust the current page filters.
+                    </EmptyState>
                   </td>
                 </tr>
               ) : null}
@@ -359,15 +369,18 @@ export function RolesAdminPage() {
               {isSaving ? "Saving..." : "Save Role"}
             </button>
           </form>
-          <p className="text-muted">
-            Permission catalog ({permissionsCatalog.length}): {permissionsCatalog.slice(0, 20).join(", ")}
-            {permissionsCatalog.length > 20 ? " ..." : ""}
-          </p>
+          <div className="empty-state empty-state--neutral">
+            <strong>Permission catalog</strong>
+            <p>
+              {permissionsCatalog.length} entries loaded: {permissionsCatalog.slice(0, 20).join(", ")}
+              {permissionsCatalog.length > 20 ? " ..." : ""}
+            </p>
+          </div>
         </article>
       ) : null}
 
-      {error ? <p className="text-danger">{error}</p> : null}
-      {message ? <p className="text-muted">{message}</p> : null}
+      {error ? <InlineNotice title="Role action failed" tone="error">{error}</InlineNotice> : null}
+      {message ? <InlineNotice title="Role update" tone="success">{message}</InlineNotice> : null}
     </div>
   );
 }
