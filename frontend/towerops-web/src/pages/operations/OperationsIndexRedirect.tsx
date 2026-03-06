@@ -13,6 +13,14 @@ export function OperationsIndexRedirect() {
     return <Navigate to="materials" replace />;
   }
 
+  if (hasPermission(OperationsPermissionKeys.visitsView)) {
+    return <Navigate to="visits" replace />;
+  }
+
+  if (hasPermission(OperationsPermissionKeys.workOrdersView)) {
+    return <Navigate to="work-orders" replace />;
+  }
+
   return <Navigate to="/unauthorized" replace />;
 }
 

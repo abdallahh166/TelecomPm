@@ -106,7 +106,7 @@ export function VisitDetailPage() {
   if (loading && !visit) {
     return (
       <section className="page">
-        <p className="text-muted">Loading visit…</p>
+        <p className="text-muted">Loading visit...</p>
       </section>
     );
   }
@@ -140,13 +140,13 @@ export function VisitDetailPage() {
           className="btn-outline"
           onClick={() => navigate("/operations/visits")}
         >
-          ← Back to Visits
+          {"<-"} Back to Visits
         </button>
       </div>
 
       <h2>{visit.visitNumber}</h2>
       <p className="text-muted">
-        {visit.siteName} ({visit.siteCode}) · {visit.status} · {visit.type}
+        {visit.siteName} ({visit.siteCode}) - {visit.status} - {visit.type}
       </p>
 
       {error && (
@@ -230,7 +230,7 @@ export function VisitDetailPage() {
             {visit.approvalHistory.map((a) => (
               <li key={a.id}>
                 {a.action} by {a.performedBy} at {formatDate(a.performedAtUtc)}
-                {a.notes && ` — ${a.notes}`}
+                {a.notes && ` - ${a.notes}`}
               </li>
             ))}
           </ul>

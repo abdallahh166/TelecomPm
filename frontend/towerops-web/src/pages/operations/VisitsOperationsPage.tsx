@@ -292,7 +292,7 @@ export function VisitsOperationsPage() {
       )}
 
       {loading ? (
-        <p className="text-muted">Loading…</p>
+        <p className="text-muted">Loading...</p>
       ) : (
         <>
           <table className="data-table">

@@ -174,7 +174,7 @@ export function WorkOrdersOperationsPage() {
             onClick={onLookup}
             disabled={loading || !lookupId.trim()}
           >
-            {loading ? "Loading…" : "Load"}
+            {loading ? "Loading..." : "Load"}
           </button>
         </div>
       </article>
@@ -283,7 +283,7 @@ export function WorkOrdersOperationsPage() {
         <article className="panel">
           <h3>{workOrder.woNumber}</h3>
           <p className="text-muted">
-            {workOrder.siteCode} · {workOrder.officeCode} · {workOrder.status} · {workOrder.slaClass}
+            {workOrder.siteCode} - {workOrder.officeCode} - {workOrder.status} - {workOrder.slaClass}
           </p>
           <dl className="data-list">
             <dt>Response deadline</dt>
@@ -291,9 +291,9 @@ export function WorkOrdersOperationsPage() {
             <dt>Resolution deadline</dt>
             <dd>{formatDate(workOrder.resolutionDeadlineUtc)}</dd>
             <dt>Assigned engineer</dt>
-            <dd>{workOrder.assignedEngineerName ?? "—"}</dd>
+            <dd>{workOrder.assignedEngineerName ?? "-"}</dd>
             <dt>Issue</dt>
-            <dd>{workOrder.issueDescription || "—"}</dd>
+            <dd>{workOrder.issueDescription || "-"}</dd>
           </dl>
 
           {canManage && (

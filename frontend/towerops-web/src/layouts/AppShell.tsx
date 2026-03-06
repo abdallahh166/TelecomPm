@@ -2,11 +2,15 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../features/auth/context/AuthContext";
 import { Button } from "../components/Button/Button";
 import { initI18n, t } from "../i18n";
+import { ADMIN_WORKSPACE_PERMISSIONS, hasAnyPermission } from "../features/admin/permissionKeys";
+import { OPERATIONS_WORKSPACE_PERMISSIONS } from "../features/operations/permissionKeys";
 
 initI18n();
 
 export function AppShell() {
-  const { session, logout } = useAuth();
+  const { session, logout, hasPermission } = useAuth();
+  const showAdminNav = hasAnyPermission(hasPermission, ADMIN_WORKSPACE_PERMISSIONS);
+  const showOperationsNav = hasAnyPermission(hasPermission, OPERATIONS_WORKSPACE_PERMISSIONS);
 
   return (
     <div className="min-h-screen bg-d-bg text-d-text font-sans">
@@ -45,6 +49,34 @@ export function AppShell() {
             >
               {t("nav.dashboard")}
             </NavLink>
+            {showAdminNav ? (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium transition ${
+                    isActive
+                      ? "border-blue/30 bg-blue/10 text-blue"
+                      : "border-d-border bg-d-surface2 text-d-muted hover:text-d-text"
+                  }`
+                }
+              >
+                {t("nav.admin")}
+              </NavLink>
+            ) : null}
+            {showOperationsNav ? (
+              <NavLink
+                to="/operations"
+                className={({ isActive }) =>
+                  `inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium transition ${
+                    isActive
+                      ? "border-blue/30 bg-blue/10 text-blue"
+                      : "border-d-border bg-d-surface2 text-d-muted hover:text-d-text"
+                  }`
+                }
+              >
+                {t("nav.operations")}
+              </NavLink>
+            ) : null}
           </nav>
         </div>
       </header>

@@ -212,8 +212,46 @@
     @apply inline-flex h-10 items-center justify-center rounded-xl border border-d-border bg-d-surface2 px-4 text-sm font-medium text-d-muted transition hover:border-blue/30 hover:text-d-text;
   }
 
+  .admin-tabs button {
+    @apply inline-flex h-10 items-center justify-center rounded-xl border border-d-border bg-d-surface2 px-4 text-sm font-medium text-d-muted transition hover:border-blue/30 hover:text-d-text;
+  }
+
   .admin-tabs a.active {
     @apply border-blue/30 bg-blue/10 text-blue;
+  }
+
+  .admin-tabs button.active {
+    @apply border-blue/30 bg-blue/10 text-blue;
+  }
+
+  .screen-center {
+    @apply mx-auto flex min-h-[70vh] w-full max-w-7xl items-center justify-center px-4 py-6 sm:px-6 lg:px-8;
+  }
+
+  .form-row {
+    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end;
+  }
+
+  .form-row > label {
+    @apply flex min-w-[220px] flex-1 flex-col gap-2 text-sm text-d-text;
+  }
+
+  .form-row > input,
+  .form-row > select,
+  .form-row > textarea {
+    @apply h-11 w-full rounded-xl border border-d-border bg-d-surface2 px-3.5 text-sm text-d-text outline-none transition placeholder:text-d-muted/80 focus:border-blue focus:ring-2 focus:ring-blue/20;
+  }
+
+  .data-list {
+    @apply mt-4 grid grid-cols-1 gap-2 rounded-2xl border border-d-border bg-d-surface2/70 p-4 sm:grid-cols-[auto_1fr];
+  }
+
+  .data-list dt {
+    @apply font-mono text-[11px] uppercase tracking-[1.6px] text-d-muted;
+  }
+
+  .data-list dd {
+    @apply m-0 text-sm text-d-text;
   }
 
   .table-wrap {
