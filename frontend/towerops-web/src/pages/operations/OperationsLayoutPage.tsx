@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../features/auth/context/AuthContext";
 import { OperationsPermissionKeys } from "../../features/operations/permissionKeys";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
 
 export function OperationsLayoutPage() {
   const { hasPermission } = useAuth();
@@ -35,12 +36,11 @@ export function OperationsLayoutPage() {
 
   return (
     <section className="page">
-      <div>
-        <h2>Operations Workspace</h2>
-        <p className="text-muted">
-          Sites, assets, materials, visits, and work orders.
-        </p>
-      </div>
+      <PageIntro
+        eyebrow="Phases 3-5"
+        title="Operations Workspace"
+        description="Manage sites, assets, materials, visits, and work-order execution from one operational control surface."
+      />
       <nav className="admin-tabs">
         {tabs.map((tab) => (
           <NavLink key={tab.to} to={tab.to}>

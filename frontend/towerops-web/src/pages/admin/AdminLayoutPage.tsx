@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../features/auth/context/AuthContext";
 import { AdminPermissionKeys } from "../../features/admin/permissionKeys";
+import { PageIntro } from "../../components/PageIntro/PageIntro";
 
 export function AdminLayoutPage() {
   const { hasPermission } = useAuth();
@@ -30,12 +31,11 @@ export function AdminLayoutPage() {
 
   return (
     <section className="page">
-      <div>
-        <h2>Admin Workspace</h2>
-        <p className="text-muted">
-          Phase 2 implementation for Offices, Users, Roles, and Settings.
-        </p>
-      </div>
+      <PageIntro
+        eyebrow="Phase 2"
+        title="Admin Workspace"
+        description="Manage master data, access controls, and system settings used by operations and reporting flows."
+      />
       <nav className="admin-tabs">
         {tabs.map((tab) => (
           <NavLink key={tab.to} to={tab.to}>

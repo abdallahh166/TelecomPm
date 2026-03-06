@@ -13,6 +13,29 @@ This document defines the phased rollout plan for the **TowerOps** web frontend.
 - `docs/ops/Incident-Runbook-Sync-Conflict-Replay.md`
 - `docs/branding/towerops-branding-complete.html` (brand identity source)
 
+## Current Implementation Status (March 6, 2026)
+
+| Phase | Status in current frontend code | Notes |
+|---|---|---|
+| 0 | Documented | Governance model is documented; enforcement depends on branch protection and CI configuration. |
+| 1 | Implemented | Auth pages, protected shell, token refresh flow, error/correlation handling are implemented. |
+| 2 | Implemented | Admin workspace routes and pages exist for Offices, Users, Roles, Settings. |
+| 3 | Implemented | Operations pages exist for Sites, Assets, Materials, including import and stock operations. |
+| 4 | Partially implemented | Visits list and visit detail review actions exist; full evidence capture UX is not fully complete. |
+| 5 | Partially implemented | Work-order lifecycle UI exists; dedicated escalations and daily-plans pages are not wired yet. |
+| 6 | Partially implemented | KPI dashboard is implemented; dedicated analytics/reporting pages are pending. |
+| 7 | Not implemented | Portal and sync monitoring routes/pages are not wired yet. |
+| 8 | Not complete | Baseline quality checks pass, but full hardening/UAT gates are still pending. |
+
+Implemented route coverage:
+- `/` dashboard
+- `/login`, `/forgot-password`, `/reset-password`, `/change-password`
+- `/admin/offices`, `/admin/users`, `/admin/roles`, `/admin/settings`
+- `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`
+
+Verification:
+- `npm run lint` and `npm run build` pass in `frontend/towerops-web` (March 6, 2026).
+
 ---
 
 ## Brand Context

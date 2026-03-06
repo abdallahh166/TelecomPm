@@ -22,6 +22,32 @@ Companion technical references:
 - `docs/Pagination-Consistency-Matrix.md` (pagination contracts and inconsistencies)
 - `docs/Documentation-Gap-Report.md` (remaining docs debt)
 
+## Current Frontend Consumption Snapshot (March 6, 2026)
+
+This section records what the current frontend actually consumes today.
+
+Implemented endpoint groups:
+- Auth: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/logout`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/change-password`.
+- Admin: `/api/offices/*`, `/api/users/*`, `/api/roles/*`, `/api/settings/*`.
+- Operations:
+  - KPI: `/api/kpi/operations`.
+  - Sites/Assets/Materials: `/api/sites/*`, `/api/assets/*`, `/api/materials/*`.
+  - Visits: `/api/visits/engineers/{engineerId}`, `/api/visits/pending-reviews`, `/api/visits/scheduled`, `/api/visits/{visitId}`, review actions.
+  - Work orders: `/api/workorders/*` lifecycle actions used by operations page.
+
+Frontend routes currently wired:
+- `/` dashboard.
+- `/admin/offices`, `/admin/users`, `/admin/roles`, `/admin/settings`.
+- `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`.
+
+Not yet wired as dedicated pages:
+- Analytics and reporting center routes (Phase 6 full scope).
+- Client portal routes and sync monitoring routes (Phase 7 scope).
+- Dedicated escalations and daily-plans operations pages.
+
+Verification:
+- `npm run lint` and `npm run build` pass in `frontend/towerops-web` (March 6, 2026).
+
 ---
 
 ## 1) Full Reporting List

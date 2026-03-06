@@ -31,6 +31,8 @@
   "auth.change.submit": "Change password",
   "auth.help": "Need help? Contact your system administrator.",
   "nav.dashboard": "Dashboard",
+  "nav.admin": "Admin",
+  "nav.operations": "Operations",
   "nav.logout": "Logout",
   "dashboard.phase1.authenticatedPrefix": "Authenticated. Role:",
   "dashboard.phase1.authenticatedSuffix": "Phase 2+ will add workspaces.",

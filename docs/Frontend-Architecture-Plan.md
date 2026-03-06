@@ -3,6 +3,27 @@
 ## Purpose
 This document defines the frontend architecture for the TowerOps web application, aligned with **TowerOps-Frontend-Implementation-Phases.md**. Implementation follows phases 0→8 sequentially; no phases are skipped and API contracts are not changed.
 
+## Current Implementation Snapshot (March 6, 2026)
+
+Implemented in code (`frontend/towerops-web`):
+- Auth flow routes and pages: `/login`, `/forgot-password`, `/reset-password`, `/change-password`.
+- Protected routing with `RequireAuth` and permission gating via `RequireAnyPermission`.
+- Authenticated shell with permission-aware navigation tabs (Dashboard/Admin/Operations).
+- API client with correlation header propagation, Accept-Language, bearer token injection, and one-time refresh retry on 401.
+- Unified API error adapter and pagination parser utilities.
+- Workspace routing:
+  - Admin: `/admin/offices`, `/admin/users`, `/admin/roles`, `/admin/settings`.
+  - Operations: `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`.
+
+Pending for later phases:
+- Dedicated reporting and analytics UI module scope (Phase 6).
+- Dedicated client portal and sync monitoring UI module scope (Phase 7).
+- Full hardening and UAT gate items (Phase 8).
+
+Verification status:
+- `npm run lint` passed on March 6, 2026.
+- `npm run build` passed on March 6, 2026.
+
 ---
 
 ## 1. Technology Stack

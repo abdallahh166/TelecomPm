@@ -60,7 +60,7 @@ export function DashboardPage() {
               {kpiError}
             </div>
           )}
-          {kpiLoading && <p className="text-muted">Loading KPI…</p>}
+          {kpiLoading && <p className="text-muted">Loading KPI...</p>}
           {kpi && !kpiLoading && (
             <article className="panel" style={{ marginTop: "1rem" }}>
               <h3>Operations KPI</h3>

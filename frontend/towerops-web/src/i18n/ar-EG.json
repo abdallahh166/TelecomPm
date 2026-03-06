@@ -31,6 +31,8 @@
   "auth.change.submit": "تغيير كلمة المرور",
   "auth.help": "تحتاج مساعدة؟ تواصل مع مسؤول النظام.",
   "nav.dashboard": "لوحة التحكم",
+  "nav.admin": "الإدارة",
+  "nav.operations": "العمليات",
   "nav.logout": "تسجيل الخروج",
   "dashboard.phase1.authenticatedPrefix": "تم تسجيل الدخول. الدور:",
   "dashboard.phase1.authenticatedSuffix": "ستتم إضافة مساحات عمل المرحلة 2+ لاحقاً.",
