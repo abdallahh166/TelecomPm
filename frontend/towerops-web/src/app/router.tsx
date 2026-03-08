@@ -29,6 +29,8 @@ import { MaterialsOperationsPage } from "../pages/operations/MaterialsOperations
 import { VisitsOperationsPage } from "../pages/operations/VisitsOperationsPage";
 import { VisitDetailPage } from "../pages/operations/VisitDetailPage";
 import { WorkOrdersOperationsPage } from "../pages/operations/WorkOrdersOperationsPage";
+import { EscalationsOperationsPage } from "../pages/operations/EscalationsOperationsPage";
+import { DailyPlansOperationsPage } from "../pages/operations/DailyPlansOperationsPage";
 
 export function AppRouter() {
   return (
@@ -107,6 +109,8 @@ export function AppRouter() {
           <Route path="visits" element={<VisitsOperationsPage />} />
           <Route path="visits/:visitId" element={<VisitDetailPage />} />
           <Route path="work-orders" element={<WorkOrdersOperationsPage />} />
+          <Route path="escalations" element={<EscalationsOperationsPage />} />
+          <Route path="daily-plans" element={<DailyPlansOperationsPage />} />
         </Route>
 
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

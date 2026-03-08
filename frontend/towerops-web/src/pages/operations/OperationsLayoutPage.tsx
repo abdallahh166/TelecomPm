@@ -5,6 +5,10 @@ import { PageIntro } from "../../components/PageIntro/PageIntro";
 
 export function OperationsLayoutPage() {
   const { hasPermission } = useAuth();
+  const hasEscalationAccess =
+    hasPermission(OperationsPermissionKeys.escalationsView) ||
+    hasPermission(OperationsPermissionKeys.escalationsCreate) ||
+    hasPermission(OperationsPermissionKeys.escalationsManage);
 
   const tabs = [
     {
@@ -32,6 +36,16 @@ export function OperationsLayoutPage() {
       label: "Work Orders",
       isVisible: hasPermission(OperationsPermissionKeys.workOrdersView),
     },
+    {
+      to: "escalations",
+      label: "Escalations",
+      isVisible: hasEscalationAccess,
+    },
+    {
+      to: "daily-plans",
+      label: "Daily Plans",
+      isVisible: hasPermission(OperationsPermissionKeys.sitesManage),
+    },
   ].filter((tab) => tab.isVisible);
 
   return (
@@ -39,7 +53,7 @@ export function OperationsLayoutPage() {
       <PageIntro
         eyebrow="Phases 3-5"
         title="Operations Workspace"
-        description="Manage sites, assets, materials, visits, and work-order execution from one operational control surface."
+        description="Manage sites, assets, materials, visits, work orders, escalations, and daily planning from one operational control surface."
       />
       <nav className="admin-tabs">
         {tabs.map((tab) => (

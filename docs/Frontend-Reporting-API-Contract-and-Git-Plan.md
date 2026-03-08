@@ -34,16 +34,17 @@ Implemented endpoint groups:
   - Sites/Assets/Materials: `/api/sites/*`, `/api/assets/*`, `/api/materials/*`.
   - Visits: `/api/visits/engineers/{engineerId}`, `/api/visits/pending-reviews`, `/api/visits/scheduled`, `/api/visits/{visitId}`, review actions.
   - Work orders: `/api/workorders/*` lifecycle actions used by operations page.
+  - Escalations: `/api/escalations/*` create, lookup, and lifecycle transitions.
+  - Daily plans: `/api/daily-plans/*` create, load, assign/remove, suggest-order, unassigned, publish.
 
 Frontend routes currently wired:
 - `/` dashboard.
 - `/admin/offices`, `/admin/users`, `/admin/roles`, `/admin/settings`.
-- `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`.
+- `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`, `/operations/escalations`, `/operations/daily-plans`.
 
 Not yet wired as dedicated pages:
 - Analytics and reporting center routes (Phase 6 full scope).
 - Client portal routes and sync monitoring routes (Phase 7 scope).
-- Dedicated escalations and daily-plans operations pages.
 
 Verification:
 - `npm run lint` and `npm run build` pass in `frontend/towerops-web` (March 6, 2026).

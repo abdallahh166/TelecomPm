@@ -8,6 +8,9 @@ export const OperationsPermissionKeys = {
   visitsReview: "visits.review",
   workOrdersView: "workorders.view",
   workOrdersManage: "workorders.create",
+  escalationsView: "escalations.view",
+  escalationsCreate: "escalations.create",
+  escalationsManage: "escalations.manage",
   kpiView: "kpi.view",
 } as const;
 
@@ -18,5 +21,8 @@ export const OPERATIONS_WORKSPACE_PERMISSIONS = [
   OperationsPermissionKeys.materialsManage,
   OperationsPermissionKeys.visitsView,
   OperationsPermissionKeys.workOrdersView,
+  OperationsPermissionKeys.escalationsView,
+  OperationsPermissionKeys.escalationsCreate,
+  OperationsPermissionKeys.escalationsManage,
   OperationsPermissionKeys.kpiView,
 ] as const;

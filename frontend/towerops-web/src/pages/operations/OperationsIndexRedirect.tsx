@@ -4,6 +4,10 @@ import { OperationsPermissionKeys } from "../../features/operations/permissionKe
 
 export function OperationsIndexRedirect() {
   const { hasPermission } = useAuth();
+  const hasEscalationAccess =
+    hasPermission(OperationsPermissionKeys.escalationsView) ||
+    hasPermission(OperationsPermissionKeys.escalationsCreate) ||
+    hasPermission(OperationsPermissionKeys.escalationsManage);
 
   if (hasPermission(OperationsPermissionKeys.sitesView)) {
     return <Navigate to="sites" replace />;
@@ -19,6 +23,14 @@ export function OperationsIndexRedirect() {
 
   if (hasPermission(OperationsPermissionKeys.workOrdersView)) {
     return <Navigate to="work-orders" replace />;
+  }
+
+  if (hasEscalationAccess) {
+    return <Navigate to="escalations" replace />;
+  }
+
+  if (hasPermission(OperationsPermissionKeys.sitesManage)) {
+    return <Navigate to="daily-plans" replace />;
   }
 
   return <Navigate to="/unauthorized" replace />;

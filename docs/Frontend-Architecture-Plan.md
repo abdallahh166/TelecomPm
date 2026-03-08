@@ -13,7 +13,7 @@ Implemented in code (`frontend/towerops-web`):
 - Unified API error adapter and pagination parser utilities.
 - Workspace routing:
   - Admin: `/admin/offices`, `/admin/users`, `/admin/roles`, `/admin/settings`.
-  - Operations: `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`.
+  - Operations: `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`, `/operations/escalations`, `/operations/daily-plans`.
 
 Pending for later phases:
 - Dedicated reporting and analytics UI module scope (Phase 6).
