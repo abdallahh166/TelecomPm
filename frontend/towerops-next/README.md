@@ -12,9 +12,23 @@ This project is the initial implementation scaffold for the TowerOps admin front
 - Protected operations layout (`RequireAuth` + `AppShell`)
 - Auth flow scaffold integrated with backend auth endpoints (`/auth/login`, `/auth/refresh`, `/auth/logout`)
 - Initial operations slices:
+  - `/dashboard`
   - `/sites`
+  - `/assets`
+  - `/visits`
   - `/workorders`
   - `/workorders/[id]`
+  - `/materials`
+  - `/escalations`
+  - `/daily-plans`
+  - `/analytics`
+  - `/reports`
+  - `/admin/users`
+  - `/admin/offices`
+  - `/admin/roles`
+  - `/admin/settings`
+  - `/portal/dashboard`
+  - `/portal/workorders`
 - Reusable UI primitives and feedback states:
   - `Button`, `Input`, `DataTable`, `Pagination`, `StatusBadge`
   - `LoadingState`, `ErrorState`, `EmptyState`
