@@ -11,6 +11,29 @@ using TowerOps.Api.Mappings;
 [Authorize]
 public sealed class WorkOrdersController : ApiControllerBase
 {
+    [HttpGet]
+    [Authorize(Policy = ApiAuthorizationPolicies.CanViewWorkOrders)]
+    public async Task<IActionResult> GetWorkOrders(
+        [FromQuery(Name = "page")] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken cancellationToken = default)
+    {
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = Math.Clamp(pageSize, 1, 100);
+
+        var result = await Mediator.Send(
+            new TowerOps.Application.Queries.WorkOrders.GetWorkOrders.GetWorkOrdersQuery
+            {
+                Page = safePage,
+                PageSize = safePageSize
+            },
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+            return HandleResult(result);
+
+        return Ok(result.Value.ToPagedResponse());
+    }
+
     [HttpPost]
     [Authorize(Policy = ApiAuthorizationPolicies.CanManageWorkOrders)]
     public async Task<IActionResult> Create([FromBody] CreateWorkOrderRequest request, CancellationToken cancellationToken)
