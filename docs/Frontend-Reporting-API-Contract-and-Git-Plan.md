@@ -15,6 +15,39 @@ Assumptions:
 - Authentication is JWT bearer.
 - All business timestamps are UTC.
 
+Companion technical references:
+- `docs/CQRS-Inventory.md` (command/query inventory)
+- `docs/Database-Schema-and-ERD.md` (schema and logical ERD)
+- `docs/File-Constraints-Matrix.md` (upload/import/signature constraints)
+- `docs/Pagination-Consistency-Matrix.md` (pagination contracts and inconsistencies)
+- `docs/Documentation-Gap-Report.md` (remaining docs debt)
+
+## Current Frontend Consumption Snapshot (March 6, 2026)
+
+This section records what the current frontend actually consumes today.
+
+Implemented endpoint groups:
+- Auth: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/logout`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/change-password`.
+- Admin: `/api/offices/*`, `/api/users/*`, `/api/roles/*`, `/api/settings/*`.
+- Operations:
+  - KPI: `/api/kpi/operations`.
+  - Sites/Assets/Materials: `/api/sites/*`, `/api/assets/*`, `/api/materials/*`.
+  - Visits: `/api/visits/engineers/{engineerId}`, `/api/visits/pending-reviews`, `/api/visits/scheduled`, `/api/visits/{visitId}`, review actions.
+  - Work orders: `/api/workorders/*` lifecycle actions used by operations page.
+
+Frontend routes currently wired:
+- `/` dashboard.
+- `/admin/offices`, `/admin/users`, `/admin/roles`, `/admin/settings`.
+- `/operations/sites`, `/operations/assets`, `/operations/materials`, `/operations/visits`, `/operations/visits/:visitId`, `/operations/work-orders`.
+
+Not yet wired as dedicated pages:
+- Analytics and reporting center routes (Phase 6 full scope).
+- Client portal routes and sync monitoring routes (Phase 7 scope).
+- Dedicated escalations and daily-plans operations pages.
+
+Verification:
+- `npm run lint` and `npm run build` pass in `frontend/towerops-web` (March 6, 2026).
+
 ---
 
 ## 1) Full Reporting List
@@ -60,17 +93,17 @@ Backward-compatible alias fields also exist:
 | Report | Endpoint | Filters | Table Notes |
 |---|---|---|---|
 | Engineer Visit Queue | `GET /api/visits/engineers/{engineerId}` | `status,from,to,pageNumber,pageSize` | Paginated |
-| Pending Reviews | `GET /api/visits/pending-reviews` | `officeId` | Operational review queue |
-| Scheduled Visits | `GET /api/visits/scheduled` | `date,engineerId` | Daily scheduling grid |
+| Pending Reviews | `GET /api/visits/pending-reviews` | `officeId,page,pageSize` | Paginated operational review queue |
+| Scheduled Visits | `GET /api/visits/scheduled` | `date,engineerId,page,pageSize` | Paginated daily scheduling grid |
 | Office Sites | `GET /api/sites/office/{officeId}` | `pageNumber,pageSize,complexity,status` | Paginated |
 | Maintenance Needed Sites | `GET /api/sites/maintenance` | `daysThreshold,officeId` | Prioritized backlog |
-| Materials by Office | `GET /api/materials` | `officeId,onlyInStock` | Stock list |
+| Materials by Office | `GET /api/materials` | `officeId,onlyInStock,page,pageSize` | Paginated stock list |
 | Low Stock Materials | `GET /api/materials/low-stock/{officeId}` | none | Procurement trigger list |
-| Users by Office | `GET /api/users/office/{officeId}` | none | Staff coverage |
-| Users by Role | `GET /api/users/role/{role}` | none | Role governance |
-| Portal Sites | `GET /api/portal/sites` | `pageNumber,pageSize` | Client-facing list |
-| Portal Work Orders | `GET /api/portal/workorders` | `pageNumber,pageSize` | Client-facing WO table |
-| Portal Visits by Site | `GET /api/portal/visits/{siteCode}` | `pageNumber,pageSize` | Client-facing visit history |
+| Users by Office | `GET /api/users/office/{officeId}` | `onlyActive,page,pageSize` | Paginated staff coverage |
+| Users by Role | `GET /api/users/role/{role}` | `officeId,page,pageSize` | Paginated role governance |
+| Portal Sites | `GET /api/portal/sites` | `page,pageSize,sortBy,sortDir` | Client-facing paginated list |
+| Portal Work Orders | `GET /api/portal/workorders` | `page,pageSize,sortBy,sortDir` | Client-facing paginated WO table |
+| Portal Visits by Site | `GET /api/portal/visits/{siteCode}` | `page,pageSize,sortBy,sortDir` | Client-facing paginated visit history |
 | Sync Status | `GET /api/sync/status/{deviceId}` | none | Offline sync telemetry |
 | Sync Conflicts | `GET /api/sync/conflicts/{engineerId}` | none | Conflict resolution queue |
 | Assets by Site | `GET /api/assets/site/{siteCode}` | none | Asset inventory view |
@@ -135,7 +168,9 @@ P2:
   - Excel exports: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 
 ### 2.2 Current Success Response Contract (Implemented)
-- Most endpoints return raw payload objects/arrays on `200`.
+- Read endpoints return either:
+  - direct JSON DTO/object, or
+  - `PagedResponse<T>` (`data` + `pagination`) for paginated lists.
 - Command endpoints with no payload return `200` with empty body.
 - Create endpoints commonly return `201 Created` with body payload.
 
@@ -166,23 +201,26 @@ Error code set:
 
 ### 2.4 Pagination Contract
 
-Implemented paginated shape (`PaginatedList<T>`):
+Implemented paginated HTTP shape (`PagedResponse<T>`):
 ```json
 {
-  "items": [],
-  "pageNumber": 1,
-  "totalPages": 10,
-  "totalCount": 192,
-  "hasPreviousPage": false,
-  "hasNextPage": true
+  "data": [],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 192,
+    "totalPages": 8,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
 }
 ```
 
 Implemented pagination query format:
-- `?pageNumber=1&pageSize=20`
-- max page size is commonly capped at 200 in handlers/controllers.
+- `?page=1&pageSize=25`
+- max page size is capped at `100` in controllers.
 
-Some endpoints accept page params but return arrays without `totalCount` (not ideal). Frontend should treat these as server-side slice responses.
+Some list endpoints still return arrays (for example `GET /api/sites/maintenance` and `GET /api/materials/low-stock/{officeId}`); frontend should treat these as non-paginated lists.
 
 ### 2.5 Filtering Contract
 Date filters:
@@ -239,11 +277,11 @@ Note:
 | Method | Route | Request DTO | Response DTO | Pagination/Filters | Example |
 |---|---|---|---|---|---|
 | GET | `/api/portal/dashboard` | - | `PortalDashboardDto` | none | `EX-12` |
-| GET | `/api/portal/sites` | Query params | `PortalSiteDto[]` | `pageNumber,pageSize` | `EX-30` |
+| GET | `/api/portal/sites` | Query params | `PagedResponse<PortalSiteDto>` | `page,pageSize,sortBy,sortDir` | `EX-30` |
 | GET | `/api/portal/sites/{siteCode}` | Route param | `PortalSiteDto` | none | `EX-31` |
-| GET | `/api/portal/workorders` | Query params | `PortalWorkOrderDto[]` | `pageNumber,pageSize` | `EX-32` |
+| GET | `/api/portal/workorders` | Query params | `PagedResponse<PortalWorkOrderDto>` | `page,pageSize,sortBy,sortDir` | `EX-32` |
 | GET | `/api/portal/sla-report` | - | `PortalSlaReportDto` | none | `EX-13` |
-| GET | `/api/portal/visits/{siteCode}` | Route + query | `PortalVisitDto[]` | `pageNumber,pageSize` | `EX-33` |
+| GET | `/api/portal/visits/{siteCode}` | Route + query | `PagedResponse<PortalVisitDto>` | `page,pageSize,sortBy,sortDir` | `EX-33` |
 | GET | `/api/portal/visits/{visitId}/evidence` | Route param | `PortalVisitEvidenceDto` | none | `EX-34` |
 | PATCH | `/api/portal/workorders/{id}/accept` | - | `WorkOrderDto` | none | `EX-07` |
 | PATCH | `/api/portal/workorders/{id}/reject` | `PortalRejectWorkOrderRequest` | `WorkOrderDto` | none | `EX-07` |
@@ -252,9 +290,9 @@ Note:
 | Method | Route | Request DTO | Response DTO | Pagination/Filters | Example |
 |---|---|---|---|---|---|
 | GET | `/api/visits/{visitId}` | Route param | `VisitDetailDto` | none | `EX-35` |
-| GET | `/api/visits/engineers/{engineerId}` | `EngineerVisitQueryParameters` | `PaginatedList<VisitDto>` | `pageNumber,pageSize,status,from,to` | `EX-04` |
-| GET | `/api/visits/pending-reviews` | Query params | `VisitDto[]` | `officeId` | `EX-36` |
-| GET | `/api/visits/scheduled` | `ScheduledVisitsQueryParameters` | `VisitDto[]` | `date,engineerId` | `EX-37` |
+| GET | `/api/visits/engineers/{engineerId}` | `EngineerVisitQueryParameters` | `PagedResponse<VisitDto>` | `pageNumber,pageSize,status,from,to` | `EX-04` |
+| GET | `/api/visits/pending-reviews` | Query params | `PagedResponse<VisitDto>` | `officeId,page,pageSize` | `EX-36` |
+| GET | `/api/visits/scheduled` | `ScheduledVisitsQueryParameters` | `PagedResponse<VisitDto>` | `date,engineerId,page,pageSize` | `EX-37` |
 | POST | `/api/visits` | `CreateVisitRequest` | `VisitDto` (`201`) | none | `EX-03` |
 | GET | `/api/visits/{visitId}/evidence-status` | Route param | `VisitEvidenceStatusDto` | none | `EX-38` |
 | POST | `/api/visits/{visitId}/start` | `StartVisitRequest` | `VisitDto` | none | `EX-03` |
@@ -318,7 +356,7 @@ Note:
 | PUT | `/api/sites/{siteCode}/ownership` | `UpdateSiteOwnershipRequest` | `SiteDetailDto` | - | `EX-44` |
 | GET | `/api/sites/{siteId}` | Route param | `SiteDetailDto` | - | `EX-44` |
 | GET | `/api/sites/{siteCode}/location` | Route param | `SiteLocationDto` | - | `EX-45` |
-| GET | `/api/sites/office/{officeId}` | `OfficeSitesQueryParameters` | `PaginatedList<SiteDto>` | `pageNumber,pageSize,complexity,status` | `EX-46` |
+| GET | `/api/sites/office/{officeId}` | `OfficeSitesQueryParameters` | `PagedResponse<SiteDto>` | `pageNumber,pageSize,complexity,status` | `EX-46` |
 | GET | `/api/sites/maintenance` | `MaintenanceSitesQueryParameters` | `SiteDto[]` | `daysThreshold,officeId` | `EX-47` |
 | POST | `/api/sites/import` | `ImportSiteDataRequest` (`multipart/form-data`) | `ImportSiteDataResult` | - | `EX-06` |
 | POST | `/api/sites/import/site-assets` | `ImportSiteDataRequest` | `ImportSiteDataResult` | - | `EX-06` |
@@ -340,7 +378,7 @@ Note:
 | POST | `/api/materials/{id}/stock/reserve` | `ReserveStockRequest` | `MaterialDto` | - | `EX-09` |
 | POST | `/api/materials/{id}/stock/consume` | `ConsumeStockRequest` | `MaterialDto` | - | `EX-09` |
 | GET | `/api/materials/{id}` | Route param | `MaterialDetailDto` | - | `EX-48` |
-| GET | `/api/materials` | Query params | `MaterialDto[]` | `officeId,onlyInStock` | `EX-49` |
+| GET | `/api/materials` | Query params | `PagedResponse<MaterialDto>` | `officeId,onlyInStock,page,pageSize` | `EX-49` |
 | GET | `/api/materials/low-stock/{officeId}` | Route param | `MaterialDto[]` | - | `EX-49` |
 
 ### Users (`/api/users`)
@@ -353,8 +391,8 @@ Note:
 | PATCH | `/api/users/{userId}/role` | `ChangeUserRoleRequest` | `UserDto` | - | `EX-11` |
 | PATCH | `/api/users/{userId}/activate` | - | `UserDto` | - | `EX-11` |
 | PATCH | `/api/users/{userId}/deactivate` | - | `UserDto` | - | `EX-11` |
-| GET | `/api/users/office/{officeId}` | Route param | `UserDto[]` | - | `EX-51` |
-| GET | `/api/users/role/{role}` | Route param | `UserDto[]` | - | `EX-51` |
+| GET | `/api/users/office/{officeId}` | Route + query | `PagedResponse<UserDto>` | `onlyActive,page,pageSize` | `EX-51` |
+| GET | `/api/users/role/{role}` | Route + query | `PagedResponse<UserDto>` | `officeId,page,pageSize` | `EX-51` |
 | GET | `/api/users/{userId}/performance` | Query params | `UserPerformanceDto` | `fromDate,toDate` | `EX-52` |
 
 ### Offices (`/api/offices`)
@@ -362,7 +400,7 @@ Note:
 |---|---|---|---|---|---|
 | POST | `/api/offices` | `CreateOfficeRequest` | `OfficeDto` (`201`) | - | `EX-10` |
 | GET | `/api/offices/{officeId}` | Route param | `OfficeDetailDto` | - | `EX-53` |
-| GET | `/api/offices` | Query params | `OfficeDto[]` | `onlyActive,pageNumber,pageSize` | `EX-54` |
+| GET | `/api/offices` | Query params | `PagedResponse<OfficeDto>` | `onlyActive,page,pageSize,sortBy,sortDir` | `EX-54` |
 | GET | `/api/offices/region/{region}` | Route param | `OfficeDto[]` | - | `EX-54` |
 | GET | `/api/offices/{officeId}/statistics` | Route param | `OfficeStatisticsDto` | - | `EX-55` |
 | PUT | `/api/offices/{officeId}` | `UpdateOfficeRequest` | `OfficeDto` | - | `EX-10` |
@@ -372,7 +410,7 @@ Note:
 ### Settings (`/api/settings`)
 | Method | Route | Request DTO | Response DTO | Pagination | Example |
 |---|---|---|---|---|---|
-| GET | `/api/settings` | Query params | `Dictionary<string, SystemSettingResponse[]>` | `pageNumber,pageSize` | `EX-17` |
+| GET | `/api/settings` | Query params | `PagedResponse<SystemSettingResponse>` | `page,pageSize,sortBy,sortDir` | `EX-17` |
 | GET | `/api/settings/{group}` | Route param | `SystemSettingResponse[]` | - | `EX-56` |
 | PUT | `/api/settings` | `UpsertSystemSettingRequest[]` | `Empty` | - | `EX-21` |
 | POST | `/api/settings/test/{service}` | Route param | `{ message: string }` | - | `EX-22` |
@@ -380,7 +418,7 @@ Note:
 ### Roles (`/api/roles`)
 | Method | Route | Request DTO | Response DTO | Pagination | Example |
 |---|---|---|---|---|---|
-| GET | `/api/roles` | Query params | `RoleResponse[]` | `pageNumber,pageSize` | `EX-18` |
+| GET | `/api/roles` | Query params | `PagedResponse<RoleResponse>` | `page,pageSize,sortBy,sortDir` | `EX-18` |
 | GET | `/api/roles/permissions` | - | `string[]` | - | `EX-57` |
 | GET | `/api/roles/{id}` | Route param | `RoleResponse` | - | `EX-18` |
 | POST | `/api/roles` | `CreateRoleRequest` | `RoleResponse` (`201`) | - | `EX-18` |
@@ -449,11 +487,12 @@ type ApiSuccess<T> = {
   data: T;
   meta?: {
     pagination?: {
-      pageNumber: number;
+      page: number;
+      pageSize: number;
       totalPages: number;
-      totalCount: number;
-      hasPreviousPage: boolean;
+      total: number;
       hasNextPage: boolean;
+      hasPreviousPage: boolean;
     };
     filters?: Record<string, unknown>;
     generatedAtUtc?: string;
@@ -462,7 +501,7 @@ type ApiSuccess<T> = {
 ```
 
 Adapter rule:
-- If server returns paginated object (`items + pageNumber + totalPages`), map to `ApiSuccess<T[]>` and put paging under `meta.pagination`.
+- If server returns paginated object (`data + pagination`), map to `ApiSuccess<T[]>` and put paging under `meta.pagination`.
 - If server returns array/object directly, map as `data`.
 - If empty `200`, map `data: null`.
 - If file response, bypass adapter and handle as blob download.
@@ -532,7 +571,7 @@ Core operations models:
 `EX-04` Paginated visit list:
 ```json
 {
-  "items": [
+  "data": [
     {
       "id": "8277c3ad-c2de-4406-9730-25e595a4f7fd",
       "visitNumber": "VST-20260225-0012",
@@ -547,11 +586,14 @@ Core operations models:
       "canBeSubmitted": false
     }
   ],
-  "pageNumber": 1,
-  "totalPages": 12,
-  "totalCount": 232,
-  "hasPreviousPage": false,
-  "hasNextPage": true
+  "pagination": {
+    "page": 1,
+    "pageSize": 20,
+    "total": 232,
+    "totalPages": 12,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
 }
 ```
 
@@ -634,7 +676,12 @@ Core operations models:
 
 `EX-30` Portal site list:
 ```json
-[{ "siteCode": "3564DE", "name": "DE-GF-3564", "status": "Active", "region": "Delta", "openWorkOrdersCount": 2 }]
+{
+  "data": [
+    { "siteCode": "3564DE", "name": "DE-GF-3564", "status": "Active", "region": "Delta", "openWorkOrdersCount": 2 }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 56, "totalPages": 3, "hasNextPage": true, "hasPreviousPage": false }
+}
 ```
 
 `EX-31` Portal site:
@@ -644,12 +691,22 @@ Core operations models:
 
 `EX-32` Portal work orders:
 ```json
-[{ "workOrderId": "guid", "siteCode": "3564DE", "status": "Assigned", "priority": "P2", "slaDeadline": "2026-02-26T07:00:00Z" }]
+{
+  "data": [
+    { "workOrderId": "guid", "siteCode": "3564DE", "status": "Assigned", "priority": "P2", "slaDeadline": "2026-02-26T07:00:00Z" }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 34, "totalPages": 2, "hasNextPage": true, "hasPreviousPage": false }
+}
 ```
 
 `EX-33` Portal visits:
 ```json
-[{ "visitId": "guid", "visitNumber": "VST-20260225-0012", "status": "Approved", "type": "BM", "scheduledDate": "2026-02-25T08:00:00Z", "engineerDisplayName": "Field Engineer" }]
+{
+  "data": [
+    { "visitId": "guid", "visitNumber": "VST-20260225-0012", "status": "Approved", "type": "BM", "scheduledDate": "2026-02-25T08:00:00Z", "engineerDisplayName": "Field Engineer" }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 11, "totalPages": 1, "hasNextPage": false, "hasPreviousPage": false }
+}
 ```
 
 `EX-34` Portal visit evidence:
@@ -664,12 +721,22 @@ Core operations models:
 
 `EX-36` Pending reviews:
 ```json
-[{ "id": "guid", "visitNumber": "VST-20260225-0012", "status": "Submitted", "type": "BM", "siteCode": "3564DE" }]
+{
+  "data": [
+    { "id": "guid", "visitNumber": "VST-20260225-0012", "status": "Submitted", "type": "BM", "siteCode": "3564DE" }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 12, "totalPages": 1, "hasNextPage": false, "hasPreviousPage": false }
+}
 ```
 
 `EX-37` Scheduled visits:
 ```json
-[{ "id": "guid", "visitNumber": "VST-20260225-0013", "status": "Scheduled", "type": "CM", "siteCode": "4411DE" }]
+{
+  "data": [
+    { "id": "guid", "visitNumber": "VST-20260225-0013", "status": "Scheduled", "type": "CM", "siteCode": "4411DE" }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 27, "totalPages": 2, "hasNextPage": true, "hasPreviousPage": false }
+}
 ```
 
 `EX-38` Visit evidence status:
@@ -714,7 +781,7 @@ Core operations models:
 
 `EX-46` Paginated office sites:
 ```json
-{ "items": [{ "id": "guid", "siteCode": "3564DE", "name": "DE-GF-3564", "status": "Active" }], "pageNumber": 1, "totalPages": 3, "totalCount": 56, "hasPreviousPage": false, "hasNextPage": true }
+{ "data": [{ "id": "guid", "siteCode": "3564DE", "name": "DE-GF-3564", "status": "Active" }], "pagination": { "page": 1, "pageSize": 20, "total": 56, "totalPages": 3, "hasNextPage": true, "hasPreviousPage": false } }
 ```
 
 `EX-47` Maintenance sites:
@@ -729,7 +796,12 @@ Core operations models:
 
 `EX-49` Materials list:
 ```json
-[{ "id": "guid", "code": "MAT-001", "name": "Battery 12V", "currentStock": 34, "isLowStock": false }]
+{
+  "data": [
+    { "id": "guid", "code": "MAT-001", "name": "Battery 12V", "currentStock": 34, "isLowStock": false }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 44, "totalPages": 2, "hasNextPage": true, "hasPreviousPage": false }
+}
 ```
 
 `EX-50` User detail:
@@ -739,7 +811,12 @@ Core operations models:
 
 `EX-51` Users list:
 ```json
-[{ "id": "guid", "name": "Engineer 01", "email": "eng01@towerops.com", "role": "Engineer", "officeName": "Delta Office", "isActive": true }]
+{
+  "data": [
+    { "id": "guid", "name": "Engineer 01", "email": "eng01@towerops.com", "role": "Engineer", "officeName": "Delta Office", "isActive": true }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 18, "totalPages": 1, "hasNextPage": false, "hasPreviousPage": false }
+}
 ```
 
 `EX-52` User performance:
@@ -754,7 +831,12 @@ Core operations models:
 
 `EX-54` Office list:
 ```json
-[{ "id": "guid", "code": "DE", "name": "Delta Office", "region": "Delta", "city": "Mansoura", "totalSites": 240 }]
+{
+  "data": [
+    { "id": "guid", "code": "DE", "name": "Delta Office", "region": "Delta", "city": "Mansoura", "totalSites": 240 }
+  ],
+  "pagination": { "page": 1, "pageSize": 25, "total": 4, "totalPages": 1, "hasNextPage": false, "hasPreviousPage": false }
+}
 ```
 
 `EX-55` Office statistics:

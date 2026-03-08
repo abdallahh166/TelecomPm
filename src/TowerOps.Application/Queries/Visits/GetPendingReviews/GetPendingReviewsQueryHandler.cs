@@ -2,6 +2,7 @@ namespace TowerOps.Application.Queries.Visits.GetPendingReviews;
 
 using AutoMapper;
 using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ using TowerOps.Application.DTOs.Visits;
 using TowerOps.Domain.Interfaces.Repositories;
 using TowerOps.Domain.Specifications.VisitSpecifications;
 
-public class GetPendingReviewsQueryHandler : IRequestHandler<GetPendingReviewsQuery, Result<List<VisitDto>>>
+public class GetPendingReviewsQueryHandler : IRequestHandler<GetPendingReviewsQuery, Result<PaginatedList<VisitDto>>>
 {
     private readonly IVisitRepository _visitRepository;
     private readonly IMapper _mapper;
@@ -21,12 +22,20 @@ public class GetPendingReviewsQueryHandler : IRequestHandler<GetPendingReviewsQu
         _mapper = mapper;
     }
 
-    public async Task<Result<List<VisitDto>>> Handle(GetPendingReviewsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<VisitDto>>> Handle(GetPendingReviewsQuery request, CancellationToken cancellationToken)
     {
-        var spec = new PendingReviewVisitsSpecification();
-        var visits = await _visitRepository.FindAsync(spec, cancellationToken);
+        var safePage = request.Page < 1 ? 1 : request.Page;
+        var safePageSize = Math.Clamp(request.PageSize, 1, 100);
+        var skip = (safePage - 1) * safePageSize;
+
+        var countSpec = new PendingReviewVisitsSpecification();
+        var totalCount = await _visitRepository.CountAsync(countSpec, cancellationToken);
+
+        var pagedSpec = new PendingReviewVisitsSpecification(skip, safePageSize);
+        var visits = await _visitRepository.FindAsNoTrackingAsync(pagedSpec, cancellationToken);
 
         var dtos = _mapper.Map<List<VisitDto>>(visits);
-        return Result.Success(dtos);
+        var paged = new PaginatedList<VisitDto>(dtos, totalCount, safePage, safePageSize);
+        return Result.Success(paged);
     }
 }

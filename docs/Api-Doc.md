@@ -105,8 +105,8 @@ Policies evaluate permission claims (`PermissionConstants.ClaimType`), not hardc
 ### VisitsController (`/api/visits`) class policy: `CanViewVisits`
 - `GET /{visitId}`
 - `GET /engineers/{engineerId}`
-- `GET /pending-reviews`
-- `GET /scheduled`
+- `GET /pending-reviews` (supports `officeId`, `page`, `pageSize`)
+- `GET /scheduled` (supports `date`, `engineerId`, `page`, `pageSize`)
 - `GET /{visitId}/evidence-status`
 - `GET /{visitId}/signature`
 - `POST /` (`CanManageVisits`)
@@ -178,7 +178,7 @@ Policies evaluate permission claims (`PermissionConstants.ClaimType`), not hardc
 
 ### MaterialsController (`/api/materials`) class policy: `CanViewMaterials`
 - `GET /{id}`
-- `GET /`
+- `GET /` (supports `officeId`, `onlyInStock`, `page`, `pageSize`)
 - `GET /low-stock/{officeId}`
 - `POST /` (`CanManageMaterials`)
 - `PUT /{id}` (`CanManageMaterials`)
@@ -207,8 +207,8 @@ Policies evaluate permission claims (`PermissionConstants.ClaimType`), not hardc
 
 ### UsersController (`/api/users`) class policy: `CanViewUsers`
 - `GET /{userId}`
-- `GET /office/{officeId}`
-- `GET /role/{role}`
+- `GET /office/{officeId}` (supports `onlyActive`, `page`, `pageSize`)
+- `GET /role/{role}` (supports `officeId`, `page`, `pageSize`)
 - `GET /{userId}/performance`
 - `POST /` (`CanManageUsers`)
 - `PUT /{userId}` (`CanManageUsers`)
@@ -316,6 +316,156 @@ Query parameters for paged list endpoints:
 - `pageSize` (default `25`, max `100`)
 - `sortBy` (endpoint allowlist enforced)
 - `sortDir` (`asc` or `desc`, default `desc`)
+
+## High-Traffic JSON Examples
+
+### `POST /api/auth/login` request
+```json
+{
+  "email": "admin@towerops.com",
+  "password": "P@ssw0rd123!",
+  "mfaCode": "123456"
+}
+```
+
+### `POST /api/auth/login` success (`200`)
+```json
+{
+  "accessToken": "<jwt>",
+  "expiresAtUtc": "2026-03-05T10:30:00Z",
+  "refreshToken": "<refresh-token>",
+  "refreshTokenExpiresAtUtc": "2026-03-12T10:15:00Z",
+  "userId": "11111111-1111-1111-1111-111111111111",
+  "email": "admin@towerops.com",
+  "role": "Admin",
+  "officeId": "22222222-2222-2222-2222-222222222222",
+  "requiresPasswordChange": false
+}
+```
+
+### `GET /api/visits/pending-reviews?officeId={officeId}&page=1&pageSize=25` success (`200`)
+```json
+{
+  "data": [
+    {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "visitNumber": "VST-20260305-0012",
+      "siteId": "44444444-4444-4444-4444-444444444444",
+      "siteCode": "CAI-0187",
+      "siteName": "Cairo East Hub",
+      "engineerId": "55555555-5555-5555-5555-555555555555",
+      "engineerName": "Ahmed Ali",
+      "supervisorName": "Mona Ibrahim",
+      "technicianNames": ["Tech A", "Tech B"],
+      "scheduledDate": "2026-03-05T08:00:00Z",
+      "actualStartTime": "2026-03-05T08:15:00Z",
+      "actualEndTime": null,
+      "engineerReportedCompletionTimeUtc": null,
+      "duration": null,
+      "status": "Submitted",
+      "type": "CM",
+      "completionPercentage": 100,
+      "canBeEdited": false,
+      "canBeSubmitted": false,
+      "engineerNotes": "Awaiting review",
+      "reviewerNotes": null,
+      "createdAt": "2026-03-05T07:20:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 17,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+### `GET /api/materials?officeId={officeId}&onlyInStock=true&page=1&pageSize=25` success (`200`)
+```json
+{
+  "data": [
+    {
+      "id": "66666666-6666-6666-6666-666666666666",
+      "code": "MAT-CBL-001",
+      "name": "RF Coaxial Cable",
+      "description": "50 Ohm outdoor cable",
+      "category": "Cable",
+      "currentStock": 124.5,
+      "unit": "Meter",
+      "minimumStock": 50,
+      "unitCost": 120.0,
+      "currency": "EGP",
+      "isLowStock": false,
+      "isActive": true
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 42,
+    "totalPages": 2,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
+
+### `GET /api/users/office/{officeId}?onlyActive=true&page=1&pageSize=25` success (`200`)
+```json
+{
+  "data": [
+    {
+      "id": "77777777-7777-7777-7777-777777777777",
+      "name": "Sara Mahmoud",
+      "email": "sara@towerops.com",
+      "phoneNumber": "01012345678",
+      "role": "Manager",
+      "officeId": "22222222-2222-2222-2222-222222222222",
+      "officeName": "Cairo Office",
+      "isActive": true,
+      "assignedSitesCount": 12,
+      "maxAssignedSites": 20,
+      "performanceRating": 4.6
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 6,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+### `GET /api/portal/workorders?page=1&pageSize=25&sortBy=createdAt&sortDir=desc` success (`200`)
+```json
+{
+  "data": [
+    {
+      "workOrderId": "88888888-8888-8888-8888-888888888888",
+      "siteCode": "CAI-0187",
+      "status": "PendingCustomerAcceptance",
+      "priority": "P2",
+      "slaDeadline": "2026-03-07T12:00:00Z",
+      "createdAt": "2026-03-05T08:00:00Z",
+      "completedAt": "2026-03-05T09:45:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 9,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
 
 ## Error Handling and Localization
 - Exceptions are normalized by `ExceptionHandlingMiddleware`.

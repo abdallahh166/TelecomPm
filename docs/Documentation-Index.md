@@ -11,9 +11,18 @@ These documents are intended to match current code behavior:
 - `docs/Domain-Doc.md`
 - `docs/Operational-Workflow.md`
 - `docs/Frontend-Reporting-API-Contract-and-Git-Plan.md`
+- `docs/TowerOps-Frontend-Implementation-Phases.md`
 - `docs/Backend-Auto-Discovery-Report.md`
 - `docs/Business-Confirmation-Checklist.md`
+- `docs/CQRS-Inventory.md`
+- `docs/Database-Schema-and-ERD.md`
+- `docs/File-Constraints-Matrix.md`
 - `docs/GitHub-Development-and-Production-Runbook.md`
+- `docs/GitHub-Daily-Workflow-Step-by-Step.md`
+- `docs/ops/Incident-Runbook-Startup-Configuration-Failures.md`
+- `docs/ops/Incident-Runbook-Database-Migration-and-Rollback.md`
+- `docs/ops/Incident-Runbook-Sync-Conflict-Replay.md`
+- `docs/Pagination-Consistency-Matrix.md`
 - `docs/TowerOps-Brand-Profile.md`
 - `docs/phase-0/00-phase-overview.md`
 - `docs/phase-1/00-phase-overview.md`
@@ -45,6 +54,7 @@ These remain useful for context but can diverge from runtime implementation:
 
 ## Dataset and Audit Inputs
 - `docs/excell/*` (field Excel templates)
+- `docs/branding/towerops-branding-complete.html` (brand identity source artifact)
 - `docs/Excel-Domain-Gap-Report.md`
 - `docs/Core-Business-Definitions-Excel-Review.md`
 - `docs/Core-Business-Definitions-Workbook-Audit.md`

@@ -6,12 +6,17 @@ namespace TowerOps.Domain.Specifications.VisitSpecifications;
 
 public sealed class ScheduledVisitsForDateSpecification : BaseSpecification<Visit>
 {
-    public ScheduledVisitsForDateSpecification(DateTime date, Guid? engineerId = null)
+    public ScheduledVisitsForDateSpecification(DateTime date, Guid? engineerId = null, int? skip = null, int? take = null)
         : base(v => v.ScheduledDate.Date == date.Date && 
                     (v.Status == VisitStatus.Scheduled || v.Status == VisitStatus.InProgress) &&
                     (!engineerId.HasValue || v.EngineerId == engineerId.Value) &&
                     !v.IsDeleted)
     {
         ApplyOrderBy(v => v.ScheduledDate);
+
+        if (skip.HasValue && take.HasValue)
+        {
+            ApplyPaging(skip.Value, take.Value);
+        }
     }
 }

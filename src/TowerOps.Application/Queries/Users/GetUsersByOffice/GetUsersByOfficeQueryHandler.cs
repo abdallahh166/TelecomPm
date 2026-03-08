@@ -2,8 +2,8 @@ namespace TowerOps.Application.Queries.Users.GetUsersByOffice;
 
 using AutoMapper;
 using MediatR;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TowerOps.Application.Common;
@@ -11,7 +11,7 @@ using TowerOps.Application.DTOs.Users;
 using TowerOps.Domain.Interfaces.Repositories;
 using TowerOps.Domain.Specifications.UserSpecifications;
 
-public class GetUsersByOfficeQueryHandler : IRequestHandler<GetUsersByOfficeQuery, Result<List<UserDto>>>
+public class GetUsersByOfficeQueryHandler : IRequestHandler<GetUsersByOfficeQuery, Result<PaginatedList<UserDto>>>
 {
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
@@ -24,13 +24,22 @@ public class GetUsersByOfficeQueryHandler : IRequestHandler<GetUsersByOfficeQuer
         _mapper = mapper;
     }
 
-    public async Task<Result<List<UserDto>>> Handle(GetUsersByOfficeQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<UserDto>>> Handle(GetUsersByOfficeQuery request, CancellationToken cancellationToken)
     {
-        var spec = new UsersByOfficeSpecification(request.OfficeId, request.OnlyActive ?? true);
-        var users = await _userRepository.FindAsync(spec, cancellationToken);
+        var safePage = request.Page < 1 ? 1 : request.Page;
+        var safePageSize = Math.Clamp(request.PageSize, 1, 100);
+        var skip = (safePage - 1) * safePageSize;
+        var onlyActive = request.OnlyActive ?? true;
 
-        var dtos = _mapper.Map<List<UserDto>>(users.ToList());
-        return Result.Success(dtos);
+        var countSpec = new UsersByOfficeSpecification(request.OfficeId, onlyActive);
+        var totalCount = await _userRepository.CountAsync(countSpec, cancellationToken);
+
+        var pagedSpec = new UsersByOfficeSpecification(request.OfficeId, onlyActive, skip, safePageSize);
+        var users = await _userRepository.FindAsNoTrackingAsync(pagedSpec, cancellationToken);
+
+        var dtos = _mapper.Map<List<UserDto>>(users);
+        var paged = new PaginatedList<UserDto>(dtos, totalCount, safePage, safePageSize);
+        return Result.Success(paged);
     }
 }
 
