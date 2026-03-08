@@ -589,3 +589,76 @@ The current blueprint is strong on module architecture and workflows, but an ent
 4. **Wave 4 — Release engineering maturity (canary, rollback, flag governance)**.
 5. **Wave 5 — Compliance certification and operational hardening sign-off**.
 
+
+
+---
+
+## Step 12 — Visual design system, branding, themes, and localization
+
+### A) Brand and logo system
+- Define a formal brand package for frontend implementation:
+  - primary logo (horizontal wordmark)
+  - compact logo mark (icon-only)
+  - monochrome variants for dark/light backgrounds
+  - minimum size, clear-space, and misuse rules
+- Store brand assets in a single source path (e.g. `public/brand/*`) with versioned filenames.
+- Add a `BrandHeader` component to enforce consistent logo usage in auth pages, app shell, PDF/report headers, and portal.
+- Include a fallback strategy when logo assets fail to load (text brand mark + accessible label).
+
+### B) Design tokens and component styling governance
+- Create token layers:
+  - **primitive tokens**: base colors, spacing, typography scale, radii, shadows
+  - **semantic tokens**: `bg.surface`, `text.primary`, `status.success`, `status.warning`
+  - **component tokens**: table row heights, button variants, form control states
+- Bind Tailwind config to token variables to avoid hardcoded colors in components.
+- Define status color mapping for domain states (work order, visit, asset, escalation) and keep it centralized.
+- Provide component states for hover/focus/active/disabled/loading and ensure WCAG contrast.
+
+### C) Light and dark themes (including role context)
+- Support both themes through CSS variables + Tailwind class strategy (`class='dark'`).
+- Theme rules:
+  - internal operations workspace defaults to dark (optional user override)
+  - portal/client workspace defaults to light (optional user override)
+- Persist user theme preference per account and device, with server-side profile sync when possible.
+- Include theme-aware chart palettes for Recharts to preserve readability in both themes.
+- Add no-flash theme hydration pattern in Next.js (`<script>` before paint to set initial theme).
+
+### D) Localization and internationalization (i18n)
+- Target locales at minimum: `en-US` and `ar-EG`.
+- Implement locale-aware routing (`/[locale]/...`) or middleware-driven locale context in App Router.
+- Externalize all user-facing strings (no hardcoded text in components).
+- Support locale-specific formatting:
+  - dates/times (UTC display policy + local presentation)
+  - numbers/percentages/currency
+  - pluralization rules
+- Keep API error code mapping localized through translation keys.
+
+### E) RTL support (Arabic)
+- Apply `dir='rtl'` automatically for Arabic and keep layout mirrored where appropriate.
+- Ensure shared components are bi-directional-safe (tables, breadcrumbs, icons, pagination, charts labels).
+- Validate mixed LTR/RTL content rendering (codes, emails, IDs, phone numbers).
+- Use visual regression snapshots for both `en-US` and `ar-EG` in light/dark combinations.
+
+### F) Accessibility and UX consistency for themes/locales
+- Keyboard navigation and visible focus rings in both light and dark modes.
+- Color is never the only indicator for status; add icons/text labels.
+- Verify contrast ratios and text legibility for charts, badges, and alert panels.
+- Provide language switcher and theme switcher in a predictable global location (top bar/user menu).
+
+### G) Enterprise acceptance criteria for design/theming/localization
+- Brand consistency:
+  - 100% of app shells and auth screens use approved logo components.
+- Theme quality:
+  - zero major contrast failures in dark/light audits.
+- Localization quality:
+  - zero hardcoded strings in production bundles.
+  - full navigation + core workflows validated in `en-US` and `ar-EG`.
+- RTL quality:
+  - no blocking layout regressions in engineer, operations, admin, and portal primary paths.
+
+### Implementation add-on sequence (after Step 10)
+1. Introduce tokens + logo asset package + base typography.
+2. Implement theme infrastructure and theme-aware chart styling.
+3. Integrate i18n pipeline and locale routing strategy.
+4. Apply RTL hardening and run visual/accessibility regression checks.
+5. Finalize brand QA and localization sign-off checklist.
