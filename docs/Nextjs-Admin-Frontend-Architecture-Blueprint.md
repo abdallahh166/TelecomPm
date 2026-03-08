@@ -529,3 +529,63 @@ All widgets should be independently query-driven and resilient to partial failur
 7. **UX improvements**
    - polish loading/error/empty states, permissions UX, accessibility, performance, and test coverage.
 
+
+---
+
+## Step 11 — Enterprise readiness checklist (what is still missing)
+
+The current blueprint is strong on module architecture and workflows, but an enterprise rollout also needs explicit non-functional and governance controls.
+
+### A) Security and identity hardening
+- SSO federation (OIDC/SAML) for enterprise tenants in addition to JWT login.
+- Strong session controls (idle timeout, absolute timeout, concurrent session policy).
+- Device/session management page (active sessions + revoke).
+- CSP, strict security headers, and dependency vulnerability gates in CI.
+- Secret rotation runbook (API keys, signing keys, and environment variables).
+
+### B) Compliance and auditability
+- Immutable frontend audit trail for privileged actions (who/what/when/from where).
+- PII data-classification matrix and masking strategy on UI level.
+- Data retention and legal-hold UX for export/delete flows.
+- Accessibility compliance target and evidence (WCAG 2.1 AA test report).
+
+### C) Observability and operability
+- Frontend telemetry standards: structured logs, tracing IDs, and key user-journey events.
+- Real-user monitoring (web vitals, error rates, interaction latency).
+- SLOs/SLIs for critical journeys (login, work order transitions, visit submit/review).
+- Runbook for incident response and feature kill-switch configuration.
+
+### D) Quality engineering at scale
+- Required automated gates:
+  - unit tests (components/hooks/services)
+  - API contract tests against OpenAPI mocks
+  - e2e tests for role-critical workflows (Admin/Engineer/Reviewer/Portal)
+  - visual regression tests for dashboard and critical forms
+- Performance budgets enforced in CI (bundle size, LCP, INP, CLS).
+- Browser/device support matrix with automated smoke checks.
+
+### E) Delivery, environments, and release strategy
+- Multi-environment strategy (dev/stage/prod) with environment parity checks.
+- Deployment model with canary/blue-green and automated rollback.
+- Feature flags with governance (owner, expiry, cleanup policy).
+- Semantic versioning and release notes automation.
+
+### F) Multi-tenancy and scalability
+- Tenant/office isolation strategy at UI routing + data scopes.
+- Large-list performance controls (virtualization, server pagination, lazy loading).
+- Caching strategy per data sensitivity and staleness profile.
+- Resilience for partial backend failures (widget-level fallbacks and degraded mode).
+
+### G) Product governance and maintainability
+- Architecture Decision Records (ADR) process for major frontend decisions.
+- Frontend ownership map by module and codeowners.
+- Definition of Done including security/accessibility/performance/test gates.
+- Backlog for tech debt and component-library lifecycle management.
+
+### Enterprise implementation wave (recommended)
+1. **Wave 1 — Security + SSO + auditability foundations**.
+2. **Wave 2 — Observability + SLOs + incident readiness**.
+3. **Wave 3 — Full quality gates (contract, e2e, visual, performance budgets)**.
+4. **Wave 4 — Release engineering maturity (canary, rollback, flag governance)**.
+5. **Wave 5 — Compliance certification and operational hardening sign-off**.
+
