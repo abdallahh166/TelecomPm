@@ -4,13 +4,20 @@ This project is the initial implementation scaffold for the TowerOps admin front
 
 ## Included foundation
 - Next.js App Router + TypeScript + Tailwind
-- React Query provider
-- Axios API client with correlation/language interceptors
-- Initial auth page (`/login`)
-- Initial operations vertical slice:
+- React Query provider + Auth provider (session-backed)
+- Axios API client with:
+  - correlation/language headers
+  - bearer token injection
+  - single-retry 401 refresh flow
+- Protected operations layout (`RequireAuth` + `AppShell`)
+- Auth flow scaffold integrated with backend auth endpoints (`/auth/login`, `/auth/refresh`, `/auth/logout`)
+- Initial operations slices:
+  - `/sites`
   - `/workorders`
   - `/workorders/[id]`
-- Reusable UI primitives: `Button`, `Input`, `DataTable`, `Pagination`, `StatusBadge`
+- Reusable UI primitives and feedback states:
+  - `Button`, `Input`, `DataTable`, `Pagination`, `StatusBadge`
+  - `LoadingState`, `ErrorState`, `EmptyState`
 
 ## Run
 ```bash
