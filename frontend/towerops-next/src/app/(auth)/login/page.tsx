@@ -1,13 +1,14 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
-import { LoginRequest } from '@/types/auth';
 import { toApiError } from '@/lib/error-adapter';
-import { useState } from 'react';
+import { LoginRequest } from '@/types/auth';
 
 export default function LoginPage() {
   const { register, handleSubmit } = useForm<LoginRequest>();
@@ -19,7 +20,7 @@ export default function LoginPage() {
     try {
       setErrorMessage(null);
       await auth.login(values);
-      router.push('/workorders');
+      router.push('/dashboard');
     } catch (error) {
       const parsed = toApiError(error);
       setErrorMessage(parsed.message);
@@ -36,6 +37,23 @@ export default function LoginPage() {
         {errorMessage ? <p className="text-sm text-brand-red">{errorMessage}</p> : null}
         <Button type="submit">Sign in</Button>
       </form>
+      <div className="text-sm">
+        <Link className="text-brand-blue underline" href="/forgot-password">
+          Forgot password
+        </Link>
+        {' | '}
+        <Link className="text-brand-blue underline" href="/mfa/setup">
+          Setup MFA
+        </Link>
+        {' | '}
+        <Link className="text-brand-blue underline" href="/mfa/verify">
+          Verify MFA
+        </Link>
+        {' | '}
+        <Link className="text-brand-blue underline" href="/change-password">
+          Change password
+        </Link>
+      </div>
     </main>
   );
 }

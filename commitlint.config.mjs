@@ -7,6 +7,9 @@ export default {
     // Legacy squash/merge subjects that already exist in history.
     (message) => subjectOf(message) === "Ci/fix iis file locks (#82)",
     (message) => subjectOf(message) === "Develop (#84)",
+    (message) =>
+      subjectOf(message) ===
+      "merge: resolve commitlint workflow conflict while syncing main into develop",
     (message) => subjectOf(message) === "Docs/frontend feedback remediation clean (#92)",
     (message) =>
       /^Docs\/frontend feedback remediation clean \(#\d+\)$/.test(

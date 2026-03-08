@@ -1,46 +1,191 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
-import { DataTable } from '@/components/ui/data-table';
-import { Pagination } from '@/components/ui/pagination';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { useFaultyAssets } from '@/hooks/use-assets';
-import { LoadingState } from '@/components/feedback/loading-state';
-import { ErrorState } from '@/components/feedback/error-state';
 import { EmptyState } from '@/components/feedback/empty-state';
+import { ErrorState } from '@/components/feedback/error-state';
+import { LoadingState } from '@/components/feedback/loading-state';
+import { Button } from '@/components/ui/button';
+import { DataTable } from '@/components/ui/data-table';
+import { Input } from '@/components/ui/input';
+import { StatusBadge } from '@/components/ui/status-badge';
+import {
+  useAssetsBySite,
+  useExpiringWarrantyAssets,
+  useFaultyAssets,
+} from '@/hooks/use-assets';
+import { formatDateTime, formatLabel } from '@/lib/format';
+
+type AssetTab = 'site' | 'faulty' | 'expiring';
 
 export default function AssetsPage() {
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-  const { data, isLoading, isError, refetch } = useFaultyAssets();
+  const [tab, setTab] = useState<AssetTab>('faulty');
+  const [siteCode, setSiteCode] = useState('');
+  const [days, setDays] = useState(30);
 
-  if (isLoading) return <LoadingState label="Loading assets..." />;
-  if (isError || !data) return <ErrorState message="Failed to load faulty assets" onRetry={() => refetch()} />;
-  if (data.length === 0) return <EmptyState label="No faulty assets found." />;
+  const normalizedSiteCode = siteCode.trim();
+  const siteQuery = useAssetsBySite(normalizedSiteCode || undefined, tab === 'site' && Boolean(normalizedSiteCode));
+  const faultyQuery = useFaultyAssets(tab === 'faulty');
+  const expiringQuery = useExpiringWarrantyAssets(days, tab === 'expiring');
 
-  const start = (page - 1) * pageSize;
-  const paged = data.slice(start, start + pageSize);
-  const hasNext = start + pageSize < data.length;
+  const activeQuery = tab === 'site' ? siteQuery : tab === 'faulty' ? faultyQuery : expiringQuery;
+  const assets = activeQuery.data ?? [];
 
-  const rows = paged.map((asset) => [
-    asset.assetCode,
+  if (tab === 'site' && !normalizedSiteCode) {
+    return (
+      <main className="space-y-6 p-6">
+        <AssetsHeader
+          days={days}
+          onDaysChange={setDays}
+          onSiteCodeChange={setSiteCode}
+          onTabChange={setTab}
+          siteCode={siteCode}
+          tab={tab}
+        />
+        <EmptyState label="Enter a site code to load site assets." />
+      </main>
+    );
+  }
+
+  if (activeQuery.isLoading) {
+    return <LoadingState label="Loading assets..." />;
+  }
+
+  if (activeQuery.isError) {
+    return <ErrorState message="Failed to load assets." onRetry={() => activeQuery.refetch()} />;
+  }
+
+  if (assets.length === 0) {
+    return (
+      <main className="space-y-6 p-6">
+        <AssetsHeader
+          days={days}
+          onDaysChange={setDays}
+          onSiteCodeChange={setSiteCode}
+          onTabChange={setTab}
+          siteCode={siteCode}
+          tab={tab}
+        />
+        <EmptyState label="No assets matched this view." />
+      </main>
+    );
+  }
+
+  const rows = assets.map((asset) => [
+    <Link className="text-brand-blue underline" href={`/assets/${asset.assetCode}`} key={`${asset.id}-details`}>
+      {asset.assetCode}
+    </Link>,
     asset.siteCode,
-    asset.name,
-    asset.category,
-    <StatusBadge key={asset.assetCode} status={asset.status} />,
-    asset.warrantyExpiryDate ? new Date(asset.warrantyExpiryDate).toLocaleDateString() : '-',
+    formatLabel(asset.type),
+    <StatusBadge key={`${asset.id}-status`} status={asset.status} />,
+    formatDateTime(asset.warrantyExpiresAtUtc),
+    formatDateTime(asset.lastServicedAtUtc),
+    <div className="flex gap-3 text-xs" key={`${asset.id}-actions`}>
+      <Link className="text-brand-blue underline" href={`/assets/${asset.assetCode}/history`}>
+        History
+      </Link>
+      <Link className="text-brand-blue underline" href={`/assets/${asset.assetCode}/actions`}>
+        Actions
+      </Link>
+    </div>,
   ]);
 
   return (
-    <main className="p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Assets</h1>
-      <DataTable headers={['Asset', 'Site', 'Name', 'Category', 'Status', 'Warranty']} rows={rows} />
-      <Pagination
-        page={page}
-        hasNext={hasNext}
-        onPrev={() => setPage((p) => Math.max(1, p - 1))}
-        onNext={() => setPage((p) => p + 1)}
+    <main className="space-y-6 p-6">
+      <AssetsHeader
+        days={days}
+        onDaysChange={setDays}
+        onSiteCodeChange={setSiteCode}
+        onTabChange={setTab}
+        siteCode={siteCode}
+        tab={tab}
+      />
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <StatCard label="Asset Count" value={`${assets.length}`} />
+        <StatCard label="View" value={tab === 'site' ? 'Site' : tab === 'faulty' ? 'Faulty' : 'Expiring Warranty'} />
+        <StatCard
+          label="Faulty in Result"
+          value={`${assets.filter((asset) => asset.status.toLowerCase() === 'faulty').length}`}
+        />
+      </section>
+
+      <DataTable
+        headers={['Asset', 'Site', 'Type', 'Status', 'Warranty', 'Last Service', 'Actions']}
+        rows={rows}
       />
     </main>
+  );
+}
+
+function AssetsHeader({
+  tab,
+  siteCode,
+  days,
+  onTabChange,
+  onSiteCodeChange,
+  onDaysChange,
+}: {
+  tab: AssetTab;
+  siteCode: string;
+  days: number;
+  onTabChange: (tab: AssetTab) => void;
+  onSiteCodeChange: (value: string) => void;
+  onDaysChange: (value: number) => void;
+}) {
+  return (
+    <section className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+      <div>
+        <h1 className="text-2xl font-semibold">Assets</h1>
+        <p className="text-sm text-slate-400">Fault, warranty, and site-scoped asset monitoring from the operations blueprint.</p>
+      </div>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => onTabChange('faulty')} type="button" variant={tab === 'faulty' ? 'primary' : 'secondary'}>
+            Faulty
+          </Button>
+          <Button onClick={() => onTabChange('expiring')} type="button" variant={tab === 'expiring' ? 'primary' : 'secondary'}>
+            Expiring Warranty
+          </Button>
+          <Button onClick={() => onTabChange('site')} type="button" variant={tab === 'site' ? 'primary' : 'secondary'}>
+            By Site
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {tab === 'site' ? (
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <span>Site Code</span>
+              <Input
+                className="min-w-[180px]"
+                onChange={(event) => onSiteCodeChange(event.target.value.toUpperCase())}
+                placeholder="CAI-001"
+                value={siteCode}
+              />
+            </label>
+          ) : null}
+          {tab === 'expiring' ? (
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <span>Days</span>
+              <Input
+                className="w-24"
+                min={1}
+                onChange={(event) => onDaysChange(Number(event.target.value) || 30)}
+                type="number"
+                value={days}
+              />
+            </label>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-4">
+      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-2 text-lg font-semibold text-slate-100">{value}</p>
+    </div>
   );
 }

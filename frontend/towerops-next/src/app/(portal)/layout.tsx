@@ -1,3 +1,11 @@
+import { AppShell } from '@/components/layout/app-shell';
+import { RequireAuth } from '@/components/layout/require-auth';
+import { ROLE_GROUPS } from '@/lib/roles';
+
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen bg-slate-100 text-slate-900">{children}</div>;
+  return (
+    <RequireAuth allowedRoles={ROLE_GROUPS.PORTAL}>
+      <AppShell>{children}</AppShell>
+    </RequireAuth>
+  );
 }

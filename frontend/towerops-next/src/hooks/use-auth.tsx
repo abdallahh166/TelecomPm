@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import * as authService from '@/services/auth.service';
 import { AuthState, LoginRequest } from '@/types/auth';
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
   }, [state]);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     if (!state.refreshToken) {
       return { accessToken: null, refreshToken: null };
     }
@@ -56,14 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }));
 
     return { accessToken: result.accessToken, refreshToken: result.refreshToken };
-  };
+  }, [state.refreshToken]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (state.refreshToken) {
       await authService.logout(state.refreshToken).catch(() => null);
     }
     setState({ accessToken: null, refreshToken: null, user: null });
-  };
+  }, [state.refreshToken]);
 
   useEffect(() => {
     configureApiClient({
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       refreshTokensHandler: refresh,
     });
-  }, [state.accessToken, state.refreshToken]);
+  }, [refresh, state.accessToken, state.refreshToken]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       refresh,
     }),
-    [state, loginMutation],
+    [logout, loginMutation, refresh, state],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
