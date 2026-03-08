@@ -125,6 +125,27 @@ Primary app sections in sidebar/top nav:
 - `reports`: Downloadable/printable operational reports (scorecards, checklist, BDT, data collection, visit report).
 - `admin`: User/office/role/settings governance.
 
+### Role-based experience model (explicit)
+
+To cover **Engineer operations and other roles**, the frontend is split by role-focused workspaces while still sharing the same component/system foundation:
+
+- **Admin**: full governance (users, roles, settings, office setup, cross-office visibility).
+- **Operations Manager / Supervisor**: planning, assignment, review/approval, SLA and escalations.
+- **Engineer (Field)**: assigned visits, check-in/check-out, checklist/readings/photos/issues/signature, submit completion.
+- **Reviewer / QA**: pending review queue, approve/reject/request correction flows.
+- **Inventory / Storekeeper**: materials catalog and stock operations (add/reserve/consume, low-stock control).
+- **Client / Customer Portal User**: readonly operational transparency + accept/reject customer acceptance step.
+
+### Engineer operations module (explicit)
+
+Add a dedicated `engineer-ops` module to avoid hiding engineer workflows under generic visits pages:
+
+- `my-day`: today schedule and task order.
+- `my-visits`: assigned visit queue by status.
+- `visit-execution`: start/check-in/check-out/complete/submit lifecycle actions.
+- `evidence-capture`: checklist items, issues, readings, photos, signature.
+- `sync-status` (optional for offline field): conflict and sync monitoring panels.
+
 ### Layout model
 
 - `RootLayout`: app providers and global styles.
@@ -236,6 +257,45 @@ Primary app sections in sidebar/top nav:
 - APIs: roles/settings endpoints.
 - Components: permission matrix, key-value settings table/editor.
 
+### Engineer workspace pages (role-scoped)
+- Page: `/engineer/my-day`
+- Purpose: engineer daily execution board with assigned visits and ordering.
+- APIs: `GET /api/visits/engineers/{engineerId}`, `GET /api/visits/scheduled`, `GET /api/daily-plans/{officeId}/{date}`.
+- Components: DayTimeline, VisitQueueCard, AssignmentList, quick lifecycle action buttons.
+
+- Page: `/engineer/visits/[visitId]/execute`
+- Purpose: guided execution workflow for field engineer (mobile-friendly).
+- APIs: `POST /api/visits/{visitId}/start`, `POST /api/visits/{visitId}/checkin`, `POST /api/visits/{visitId}/checkout`, `POST /api/visits/{visitId}/complete`, `POST /api/visits/{visitId}/submit`.
+- Components: lifecycle stepper, geostamp/status panel, sticky action footer.
+
+- Page: `/engineer/visits/[visitId]/evidence`
+- Purpose: collect and manage evidence before submit.
+- APIs: checklist/issues/readings/photos/signature endpoints under `/api/visits/{visitId}/*`.
+- Components: ChecklistEditor, ReadingsForm, IssueTracker, PhotoUploader, SignaturePad.
+
+### Reviewer/QA pages (role-scoped)
+- Page: `/reviews/visits`
+- Purpose: process submitted visits and enforce quality controls.
+- APIs: `GET /api/visits/pending-reviews`, approve/reject/request-correction endpoints.
+- Components: review queue table, evidence preview drawer, decision modal with notes.
+
+### Inventory/Storekeeper pages (role-scoped)
+- Page: `/inventory/materials`
+- Purpose: stock monitoring and transactions.
+- APIs: `GET /api/materials`, `GET /api/materials/low-stock/{officeId}`, stock add/reserve/consume endpoints.
+- Components: stock table, low-stock alerts, transaction modal, movement history table.
+
+### Client portal pages (role-scoped)
+- Page: `/portal/dashboard`
+- Purpose: client-facing operational transparency dashboard.
+- APIs: `GET /api/portal/dashboard`, `GET /api/portal/sla-report`.
+- Components: SLA cards, site summary widgets, recent workorder timeline.
+
+- Page: `/portal/workorders`
+- Purpose: customer acceptance actions on completed work orders.
+- APIs: `GET /api/portal/workorders`, `PATCH /api/portal/workorders/{id}/accept`, `PATCH /api/portal/workorders/{id}/reject`.
+- Components: workorder table, acceptance decision modal, evidence linkouts.
+
 ---
 
 ## Step 4 — Scalable folder structure
@@ -306,6 +366,17 @@ frontend/towerops-next/
       permissions.ts
       errors.ts
 ```
+
+### Role-based route groups (recommended)
+
+Use route groups in App Router to separate role experiences cleanly:
+
+- `app/(admin)/*` for Admin governance pages.
+- `app/(operations)/*` for managers/supervisors.
+- `app/(engineer)/*` for field engineer workflows.
+- `app/(review)/*` for QA/review operations.
+- `app/(inventory)/*` for materials/stock roles.
+- `app/(portal)/*` for client-facing experience.
 
 Purpose by folder:
 - `app`: route segments, layouts, route-level loading/error boundaries.
